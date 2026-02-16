@@ -17,12 +17,70 @@ export default function ClientDashboard() {
   const [availableFunds, setAvailableFunds] = useState<string[]>([]);
   const [selectedFunds, setSelectedFunds] = useState<string[]>([]);
 
+  // 자동 로그아웃 타이머 (10분)
+  const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10분 = 600,000ms
+  const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     fetchData();
     // 5초마다 자동 새로고침 (실시간 반영)
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [router]);
+
+  // 자동 로그아웃 기능 (10분 무활동)
+  useEffect(() => {
+    // 로그아웃 함수
+    const handleAutoLogout = () => {
+      alert('보안상 로그아웃 됩니다.');
+      localStorage.removeItem('clientToken');
+      localStorage.removeItem('clientData');
+      router.push('/client/login');
+    };
+
+    // 타이머 재설정 함수
+    const resetTimer = () => {
+      // 기존 타이머가 있으면 클리어
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+
+      // 새로운 타이머 설정 (10분)
+      const timer = setTimeout(() => {
+        handleAutoLogout();
+      }, INACTIVITY_TIMEOUT);
+
+      setInactivityTimer(timer);
+    };
+
+    // 사용자 활동 감지 이벤트들
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click'
+    ];
+
+    // 모든 이벤트에 리스너 추가
+    events.forEach(event => {
+      document.addEventListener(event, resetTimer);
+    });
+
+    // 초기 타이머 설정
+    resetTimer();
+
+    // 클린업: 컴포넌트 언마운트 시 이벤트 리스너 및 타이머 제거
+    return () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [inactivityTimer, router]);
 
   const fetchData = async () => {
     const token = localStorage.getItem('clientToken');
