@@ -312,12 +312,20 @@ export default function ClientDashboard() {
                 </p>
               )}
               {data.application.policy_funds && data.application.policy_funds.length > 0 && (
-                <div className="mt-3">
-                  <p className="text-sm font-medium text-blue-900 mb-2">선택한 정책자금:</p>
-                  <div className="space-y-1">
+                <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-bold text-blue-900">
+                      💼 진행 중인 정책자금
+                    </p>
+                    <span className="px-3 py-1 bg-blue-600 text-white rounded-full font-bold text-sm">
+                      {data.application.policy_funds.length}개
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {data.application.policy_funds.map((fund: string, idx: number) => (
-                      <div key={idx} className="text-sm text-blue-800 bg-white px-3 py-2 rounded border border-blue-200">
-                        • {fund}
+                      <div key={idx} className="text-sm text-blue-900 bg-white px-3 py-2 rounded-lg border border-blue-300 flex items-center justify-between shadow-sm">
+                        <span className="font-medium">• {fund}</span>
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">진행중</span>
                       </div>
                     ))}
                   </div>
@@ -331,7 +339,7 @@ export default function ClientDashboard() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">내 정보</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600">이름</label>
               <p className="text-lg font-semibold text-gray-800">{data.client?.name}</p>
@@ -341,13 +349,33 @@ export default function ClientDashboard() {
               <p className="text-lg font-semibold text-gray-800">{data.client?.email}</p>
             </div>
             <div>
+              <label className="text-sm font-medium text-gray-600">SOHO 등급</label>
+              <p className="text-lg font-semibold">
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-lg font-bold">
+                  {data.client?.soho_grade}등급
+                </span>
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">KCB 점수</label>
+              <p className="text-lg font-semibold">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg font-bold">
+                  {data.client?.kcb_score || '-'}점
+                </span>
+              </p>
+            </div>
+            <div>
               <label className="text-sm font-medium text-gray-600">NICE 점수</label>
-              <p className="text-lg font-semibold text-gray-800">{data.client?.nice_score}점</p>
+              <p className="text-lg font-semibold">
+                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-bold">
+                  {data.client?.nice_score}점
+                </span>
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">기술력 보유</label>
               <p className="text-lg font-semibold text-gray-800">
-                {data.client?.has_technology ? '예' : '아니오'}
+                {data.client?.has_technology ? '✅ 예' : '❌ 아니오'}
               </p>
             </div>
           </div>
