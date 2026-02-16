@@ -94,16 +94,16 @@ export default function AdminLogin() {
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/client/login" className="text-sm text-blue-600 hover:text-blue-700 underline">
-              클라이언트 로그인
+            <Link href="/admin" className="text-sm text-blue-600 hover:text-blue-700 underline">
+              ← 관리자 홈으로
             </Link>
           </div>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-600 text-center">
-              <strong>관리자 소개:</strong><br/>
-              이메일: 010-8178-4281<br/>
-              연락처: 권권권
+              <strong>관리자 문의:</strong><br/>
+              연락처: 010-8178-4281<br/>
+              담당자: 권권권
             </p>
           </div>
         </div>

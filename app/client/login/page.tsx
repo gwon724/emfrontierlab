@@ -103,8 +103,8 @@ export default function ClientLogin() {
           </form>
 
           <div className="mt-6 text-center">
-            <Link href="/admin/login" className="text-sm text-gray-600 hover:text-gray-800 underline">
-              관리자 로그인
+            <Link href="/client" className="text-sm text-blue-600 hover:text-blue-700 underline">
+              ← 클라이언트 홈으로
             </Link>
           </div>
         </div>
