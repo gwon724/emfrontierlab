@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       email, hashedPassword, name, age, gender, annual_revenue, debt,
-      kcb_score || null, nice_score, has_technology ? 1 : 0, diagnosis.soho_grade,
+      kcb_score || null, nice_score, has_technology ? 1 : 0, diagnosis.sohoGrade,
       1, 1, 1
     );
 
@@ -79,16 +79,12 @@ export async function POST(request: NextRequest) {
       VALUES (?, ?, ?, ?)
     `).run(
       clientId,
-      diagnosis.soho_grade,
-      JSON.stringify(diagnosis.recommended_funds),
-      diagnosis.diagnosis_details
+      diagnosis.sohoGrade,
+      JSON.stringify(diagnosis.recommendedFunds),
+      diagnosis.details
     );
 
-    // 초기 신청 상태 생성
-    db.prepare(`
-      INSERT INTO applications (client_id, status, policy_funds)
-      VALUES (?, ?, ?)
-    `).run(clientId, '접수대기', JSON.stringify(diagnosis.recommended_funds));
+    // 초기 신청은 생성하지 않음 (AI 진단 후 사용자가 직접 선택하도록)
 
     // JWT 토큰 생성
     const token = generateToken({
@@ -102,7 +98,7 @@ export async function POST(request: NextRequest) {
       message: '회원가입이 완료되었습니다.',
       token,
       clientId,
-      sohoGrade: diagnosis.soho_grade
+      sohoGrade: diagnosis.sohoGrade
     });
 
   } catch (error: any) {
