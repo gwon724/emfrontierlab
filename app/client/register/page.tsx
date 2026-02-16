@@ -41,6 +41,13 @@ export default function ClientRegister() {
     e.preventDefault();
     setError('');
 
+    // 비밀번호 유효성 검사 (영어, 숫자, 특수문자 포함 8-20자)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setError('비밀번호는 영문, 숫자, 특수문자를 포함하여 8-20자로 입력해주세요.');
+      return;
+    }
+
     // 비밀번호 확인
     if (formData.password !== formData.confirmPassword) {
       setError('비밀번호가 일치하지 않습니다.');
@@ -129,6 +136,9 @@ export default function ClientRegister() {
                       placeholder="비밀번호"
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      영문, 숫자, 특수문자 포함 8-20자
+                    </p>
                   </div>
 
                   <div>
