@@ -337,9 +337,10 @@ export default function ClientDashboard() {
 
         {/* 클라이언트 정보 */}
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">내 정보</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">내 정보</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 기본 정보 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label className="text-sm font-medium text-gray-600">이름</label>
               <p className="text-lg font-semibold text-gray-800">{data.client?.name}</p>
@@ -348,30 +349,37 @@ export default function ClientDashboard() {
               <label className="text-sm font-medium text-gray-600">이메일</label>
               <p className="text-lg font-semibold text-gray-800">{data.client?.email}</p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">SOHO 등급</label>
-              <p className="text-lg font-semibold">
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-lg font-bold">
+          </div>
+
+          {/* 신용 등급 및 점수 (한 줄로 표시) */}
+          <div className="mb-6">
+            <label className="text-sm font-medium text-gray-600 mb-3 block">신용 등급 및 점수</label>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">SOHO 등급</span>
+                <span className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-bold text-lg shadow-md">
                   {data.client?.soho_grade}등급
                 </span>
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">KCB 점수</label>
-              <p className="text-lg font-semibold">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg font-bold">
+              </div>
+              <div className="w-px h-8 bg-gray-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">KCB</span>
+                <span className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-bold text-lg shadow-md">
                   {data.client?.kcb_score || '-'}점
                 </span>
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">NICE 점수</label>
-              <p className="text-lg font-semibold">
-                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg font-bold">
+              </div>
+              <div className="w-px h-8 bg-gray-300"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">NICE</span>
+                <span className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg font-bold text-lg shadow-md">
                   {data.client?.nice_score}점
                 </span>
-              </p>
+              </div>
             </div>
+          </div>
+
+          {/* 기타 정보 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600">기술력 보유</label>
               <p className="text-lg font-semibold text-gray-800">
