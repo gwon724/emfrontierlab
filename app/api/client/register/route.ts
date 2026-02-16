@@ -18,6 +18,10 @@ export async function POST(request: NextRequest) {
       gender,
       annual_revenue,
       debt,
+      debt_policy_fund,
+      debt_credit_loan,
+      debt_secondary_loan,
+      debt_card_loan,
       kcb_score,
       nice_score,
       has_technology,
@@ -25,6 +29,13 @@ export async function POST(request: NextRequest) {
       agree_privacy,
       agree_confidentiality
     } = body;
+
+    // 총 부채 계산
+    const totalDebt = 
+      parseInt(debt_policy_fund || 0) +
+      parseInt(debt_credit_loan || 0) +
+      parseInt(debt_secondary_loan || 0) +
+      parseInt(debt_card_loan || 0);
 
     // 필수 동의 항목 확인
     if (!agree_credit_check || !agree_privacy || !agree_confidentiality) {
@@ -46,13 +57,13 @@ export async function POST(request: NextRequest) {
     // 비밀번호 해시화
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // AI 진단 수행
+    // AI 진단 수행 (총 부채 사용)
     const diagnosis = performAIDiagnosis({
       name,
       age: parseInt(age),
       gender,
       annual_revenue: parseInt(annual_revenue),
-      debt: parseInt(debt),
+      debt: totalDebt,
       kcb_score: kcb_score ? parseInt(kcb_score) : undefined,
       nice_score: parseInt(nice_score),
       has_technology: has_technology === 'true' || has_technology === true
@@ -62,11 +73,13 @@ export async function POST(request: NextRequest) {
     const result = db.prepare(`
       INSERT INTO clients (
         email, password, name, age, gender, annual_revenue, debt,
+        debt_policy_fund, debt_credit_loan, debt_secondary_loan, debt_card_loan,
         kcb_score, nice_score, has_technology, soho_grade,
         agree_credit_check, agree_privacy, agree_confidentiality
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      email, hashedPassword, name, age, gender, annual_revenue, debt,
+      email, hashedPassword, name, age, gender, annual_revenue, totalDebt,
+      debt_policy_fund || 0, debt_credit_loan || 0, debt_secondary_loan || 0, debt_card_loan || 0,
       kcb_score || null, nice_score, has_technology ? 1 : 0, diagnosis.sohoGrade,
       1, 1, 1
     );

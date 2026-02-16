@@ -18,6 +18,10 @@ export default function ClientRegister() {
     gender: '남성',
     annual_revenue: '',
     debt: '',
+    debt_policy_fund: '',
+    debt_credit_loan: '',
+    debt_secondary_loan: '',
+    debt_card_loan: '',
     kcb_score: '',
     nice_score: '',
     has_technology: false,
@@ -238,19 +242,89 @@ export default function ClientRegister() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    부채 (원) <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    기대출 내역 (원) <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="number"
-                    name="debt"
-                    value={formData.debt}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    placeholder="50000000"
-                    min="0"
-                    required
-                  />
+                  <p className="text-xs text-gray-500 mb-4">
+                    ※ 각 항목을 모두 입력해주세요. 없으면 0을 입력하세요.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        1. 정책자금 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="debt_policy_fund"
+                        value={formData.debt_policy_fund}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="0"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        2. 신용대출 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="debt_credit_loan"
+                        value={formData.debt_credit_loan}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="0"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        3. 2금융권 대출 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="debt_secondary_loan"
+                        value={formData.debt_secondary_loan}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="0"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        4. 카드론 <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        name="debt_card_loan"
+                        value={formData.debt_card_loan}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        placeholder="0"
+                        min="0"
+                        required
+                      />
+                    </div>
+
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm font-medium text-blue-800">
+                        총 기대출: {(
+                          parseInt(formData.debt_policy_fund || '0') +
+                          parseInt(formData.debt_credit_loan || '0') +
+                          parseInt(formData.debt_secondary_loan || '0') +
+                          parseInt(formData.debt_card_loan || '0')
+                        ).toLocaleString()}원
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
