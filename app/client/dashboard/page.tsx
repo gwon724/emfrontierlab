@@ -96,18 +96,18 @@ export default function ClientDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <div className="bg-gray-800 text-white py-4 px-6">
+      <div className="bg-blue-600 text-white py-4 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">EMFRONTIER LAB 관리자</h1>
-            <p className="text-sm text-gray-300">{data.client?.name}님 환영합니다</p>
+            <h1 className="text-2xl font-bold">EMFRONTIER LAB</h1>
+            <p className="text-sm text-blue-100">{data.client?.name}님 환영합니다</p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={handleGenerateQR}
-              className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
             >
-              QR 스캔
+              내 QR 코드
             </button>
             <button
               onClick={handleLogout}
@@ -171,10 +171,9 @@ export default function ClientDashboard() {
               {data.diagnosis.recommended_funds.map((fund: string, index: number) => (
                 <div
                   key={index}
-                  className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex justify-between items-center"
+                  className="p-3 bg-blue-50 border border-blue-200 rounded-lg"
                 >
                   <span className="font-medium text-gray-800">{fund}</span>
-                  <span className="text-sm text-gray-600">추천</span>
                 </div>
               ))}
             </div>
