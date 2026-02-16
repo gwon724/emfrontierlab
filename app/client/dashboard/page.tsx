@@ -79,8 +79,12 @@ export default function ClientDashboard() {
 
   // AI 진단 시작
   const handleStartDiagnosis = async () => {
+    console.log('🔵 AI 진단 시작 버튼 클릭됨');
     const token = localStorage.getItem('clientToken');
+    console.log('🔵 토큰:', token ? '존재함' : '없음');
+    
     try {
+      console.log('🔵 API 호출 시작: /api/client/ai-diagnosis');
       const res = await fetch('/api/client/ai-diagnosis', {
         method: 'POST',
         headers: {
@@ -89,14 +93,22 @@ export default function ClientDashboard() {
         }
       });
 
+      console.log('🔵 API 응답 상태:', res.status);
+      
       if (res.ok) {
         const result = await res.json();
+        console.log('🔵 AI 진단 결과:', result);
         setAvailableFunds(result.recommended_funds);
         setDiagnosisStep('select');
         setShowDiagnosis(true);
+        console.log('🔵 모달 표시됨');
+      } else {
+        const errorData = await res.json();
+        console.error('🔴 AI 진단 API 오류:', errorData);
+        alert(`AI 진단에 실패했습니다: ${errorData.error || '알 수 없는 오류'}`);
       }
     } catch (error) {
-      console.error('Error starting diagnosis:', error);
+      console.error('🔴 Error starting diagnosis:', error);
       alert('AI 진단 중 오류가 발생했습니다.');
     }
   };
