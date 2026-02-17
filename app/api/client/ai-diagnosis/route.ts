@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       success: true,
       soho_grade: diagnosis.sohoGrade,
       recommended_funds: diagnosis.recommendedFunds,
+      max_loan_limit: diagnosis.maxLoanLimit,
       details: diagnosis.details
     });
 
