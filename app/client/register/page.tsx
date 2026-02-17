@@ -16,6 +16,7 @@ export default function ClientRegister() {
     name: '',
     age: '',
     gender: '남성',
+    business_years: '',
     annual_revenue: '',
     debt: '',
     debt_policy_fund: '',
@@ -215,6 +216,26 @@ export default function ClientRegister() {
                       <option value="남성">남성</option>
                       <option value="여성">여성</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      업력 (사업 연수) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="business_years"
+                      value={formData.business_years}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="3"
+                      min="0"
+                      max="50"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      사업을 시작한 후 경과한 연수를 입력하세요
+                    </p>
                   </div>
                 </div>
               </div>
