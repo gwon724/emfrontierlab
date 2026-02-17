@@ -27,15 +27,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '신청 내역이 없습니다.' }, { status: 404 });
     }
 
-    // 재심사 가능한 상태인지 확인 (반려 또는 보완 상태)
-    if (application.status !== '반려' && application.status !== '보완') {
-      return NextResponse.json({ 
-        error: '재심사는 반려 또는 보완 상태에서만 가능합니다.',
-        current_status: application.status
-      }, { status: 400 });
-    }
-
-    // 상태를 접수대기로 변경
+    // 상태를 접수대기로 변경 (모든 상태에서 재심사 가능)
     db.prepare(`
       UPDATE applications 
       SET status = '접수대기', notes = '재심사 요청', updated_at = datetime('now')
