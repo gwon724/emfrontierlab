@@ -132,7 +132,7 @@ export default function ClientLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed mt-6"
+              className="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed mt-6"
             >
               {loading ? '로그인 중...' : '로그인'}
             </button>

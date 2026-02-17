@@ -473,7 +473,7 @@ export default function ClientRegister() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
+                className="flex-1 bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-900 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
               >
                 {loading ? '가입 중...' : '회원가입'}
               </button>
