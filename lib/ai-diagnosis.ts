@@ -132,8 +132,8 @@ export function recommendPolicyFunds(client: ClientData, sohoGrade: string): str
     funds.push('소진공 취약소상공인자금');
   }
   
-  // 2. 청년창업 지원금 (업력 7년 이하)
-  if (businessYears <= 7) {
+  // 2. 청년창업 지원금 (개업일 3년 이내)
+  if (businessYears <= 3) {
     funds.push('중진공 청년창업 지원금');
   }
   
