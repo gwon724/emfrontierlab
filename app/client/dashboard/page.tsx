@@ -14,7 +14,7 @@ export default function ClientDashboard() {
   // AI 진단 관련 state
   const [showDiagnosis, setShowDiagnosis] = useState(false);
   const [diagnosisStep, setDiagnosisStep] = useState<'start' | 'select' | 'complete'>('start');
-  const [availableFunds, setAvailableFunds] = useState<string[]>([]);
+  const [availableFunds, setAvailableFunds] = useState<any[]>([]);
   const [selectedFunds, setSelectedFunds] = useState<string[]>([]);
   const [fundDetails, setFundDetails] = useState<{[key: string]: any}>({});
 
@@ -157,22 +157,28 @@ export default function ClientDashboard() {
       if (res.ok) {
         const result = await res.json();
         console.log('🔵 AI 진단 결과:', result);
-        setAvailableFunds(result.recommended_funds);
         
-        // 정책자금 상세 정보 가져오기
-        const fundsRes = await fetch('/api/policy-funds');
-        if (fundsRes.ok) {
-          const fundsData = await fundsRes.json();
-          const detailsMap: {[key: string]: any} = {};
-          fundsData.funds.forEach((fund: any) => {
-            detailsMap[fund.fund_name] = fund;
+        // recommended_funds가 이미 객체 배열로 들어옴 (name, category, max_amount, interest_rate, requirements)
+        setAvailableFunds(result.recommended_funds || []);
+        
+        // fundDetails는 recommended_funds를 그대로 사용
+        const detailsMap: {[key: string]: any} = {};
+        if (result.recommended_funds && Array.isArray(result.recommended_funds)) {
+          result.recommended_funds.forEach((fund: any) => {
+            detailsMap[fund.name] = {
+              category: fund.category,
+              max_amount: fund.max_amount,
+              interest_rate: fund.interest_rate,
+              requirements: fund.requirements,
+              description: `최대 ${(fund.max_amount / 100000000).toFixed(1)}억원까지 지원 가능합니다.`
+            };
           });
-          setFundDetails(detailsMap);
         }
+        setFundDetails(detailsMap);
         
         setDiagnosisStep('select');
         setShowDiagnosis(true);
-        console.log('🔵 모달 표시됨');
+        console.log('🔵 모달 표시됨, 추천 자금:', result.recommended_funds);
       } else {
         const errorData = await res.json();
         console.error('🔴 AI 진단 API 오류:', errorData);
@@ -185,11 +191,11 @@ export default function ClientDashboard() {
   };
 
   // 정책자금 선택/해제
-  const toggleFund = (fund: string) => {
+  const toggleFund = (fundName: string) => {
     setSelectedFunds(prev => 
-      prev.includes(fund) 
-        ? prev.filter(f => f !== fund)
-        : [...prev, fund]
+      prev.includes(fundName) 
+        ? prev.filter(f => f !== fundName)
+        : [...prev, fundName]
     );
   };
 
@@ -595,12 +601,16 @@ export default function ClientDashboard() {
 
                 <div className="space-y-3 mb-6">
                   {availableFunds.map((fund, index) => {
-                    const details = fundDetails[fund];
-                    const isSelected = selectedFunds.includes(fund);
+                    const fundName = fund.name || fund;
+                    const fundCategory = fund.category || '';
+                    const fundMaxAmount = fund.max_amount || 0;
+                    const fundInterestRate = fund.interest_rate || '';
+                    const fundRequirements = fund.requirements || '';
+                    const isSelected = selectedFunds.includes(fundName);
                     return (
                       <div
                         key={index}
-                        onClick={() => toggleFund(fund)}
+                        onClick={() => toggleFund(fundName)}
                         className={`group relative rounded-xl border-2 transition-all duration-200 cursor-pointer
                           ${isSelected 
                             ? 'border-blue-500 bg-blue-50 shadow-lg scale-[1.02]' 
@@ -613,16 +623,16 @@ export default function ClientDashboard() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="text-lg">
-                                  {details?.category?.includes('중진공') ? '🏢' : 
-                                   details?.category?.includes('소진공') ? '🏪' : 
-                                   details?.category?.includes('신용보증') ? '🛡️' : 
-                                   details?.category?.includes('기술보증') ? '🔬' : '💼'}
+                                  {fundCategory?.includes('중진공') ? '🏢' : 
+                                   fundCategory?.includes('소진공') ? '🏪' : 
+                                   fundCategory?.includes('신용보증') ? '🛡️' : 
+                                   fundCategory?.includes('기술보증') ? '🔬' : '💼'}
                                 </span>
-                                <h5 className="font-bold text-gray-900 text-base">{fund}</h5>
+                                <h5 className="font-bold text-gray-900 text-base">{fundName}</h5>
                               </div>
-                              {details?.category && (
+                              {fundCategory && (
                                 <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">
-                                  {details.category}
+                                  {fundCategory}
                                 </span>
                               )}
                             </div>
@@ -640,56 +650,49 @@ export default function ClientDashboard() {
                           </div>
 
                           {/* 상세 정보 */}
-                          {details && (
-                            <div className="space-y-3">
-                              <p className="text-sm text-gray-600 leading-relaxed pl-7">
-                                {details.description}
-                              </p>
-                              
-                              {/* 핵심 정보 그리드 - 노션 스타일 */}
-                              <div className="grid grid-cols-2 gap-3 pl-7">
-                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                                  <div className="flex items-center gap-1 mb-1">
-                                    <span className="text-sm">💵</span>
-                                    <span className="text-xs font-medium text-gray-600">최대 한도</span>
-                                  </div>
-                                  <p className="text-lg font-bold text-blue-700">
-                                    {details.max_amount?.toLocaleString()}원
-                                  </p>
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-600 leading-relaxed pl-7">
+                              {fundRequirements ? `대상: ${fundRequirements}` : '자격 요건을 확인해주세요.'}
+                            </p>
+                            
+                            {/* 핵심 정보 그리드 - 노션 스타일 */}
+                            <div className="grid grid-cols-2 gap-3 pl-7">
+                              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <span className="text-sm">💵</span>
+                                  <span className="text-xs font-medium text-gray-600">최대 한도</span>
                                 </div>
+                                <p className="text-lg font-bold text-blue-700">
+                                  {fundMaxAmount ? `${(fundMaxAmount / 100000000).toFixed(1)}억원` : '미정'}
+                                </p>
+                              </div>
                                 
-                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-                                  <div className="flex items-center gap-1 mb-1">
-                                    <span className="text-sm">📊</span>
-                                    <span className="text-xs font-medium text-gray-600">금리</span>
-                                  </div>
-                                  <p className="text-lg font-bold text-green-700">
-                                    연 {details.interest_rate}%
-                                  </p>
+                              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+                                <div className="flex items-center gap-1 mb-1">
+                                  <span className="text-sm">📊</span>
+                                  <span className="text-xs font-medium text-gray-600">금리</span>
                                 </div>
-                                
-                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
-                                  <div className="flex items-center gap-1 mb-1">
-                                    <span className="text-sm">⏰</span>
-                                    <span className="text-xs font-medium text-gray-600">대출 기간</span>
-                                  </div>
-                                  <p className="text-lg font-bold text-purple-700">
-                                    {details.period_months}개월
-                                  </p>
-                                </div>
-                                
-                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
+                                <p className="text-lg font-bold text-green-700">
+                                  {fundInterestRate || '미정'}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* 자격 요건 */}
+                            {fundRequirements && (
+                              <div className="pl-7">
+                                <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-3 border border-amber-200">
                                   <div className="flex items-center gap-1 mb-1">
                                     <span className="text-sm">✅</span>
                                     <span className="text-xs font-medium text-gray-600">자격 요건</span>
                                   </div>
-                                  <p className="text-xs font-semibold text-orange-700 leading-tight">
-                                    {details.eligibility}
+                                  <p className="text-sm font-medium text-amber-800">
+                                    {fundRequirements}
                                   </p>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
