@@ -223,6 +223,67 @@ export default function ClientDashboard() {
     }
   };
 
+  // 정책자금 삭제
+  const handleDeleteFund = async (fundName: string) => {
+    if (!confirm(`"${fundName}"을(를) 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/delete-fund', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ fund_name: fundName })
+      });
+
+      const result = await res.json();
+      
+      if (res.ok) {
+        alert(result.message);
+        fetchData(); // 데이터 새로고침
+      } else {
+        alert(result.error || '삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error deleting fund:', error);
+      alert('삭제 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 재심사 요청
+  const handleRequestReview = async () => {
+    if (!confirm('재심사를 요청하시겠습니까? 상태가 "접수대기"로 변경됩니다.')) {
+      return;
+    }
+
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/request-review', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await res.json();
+      
+      if (res.ok) {
+        alert(result.message);
+        fetchData(); // 데이터 새로고침
+      } else {
+        alert(result.error || '재심사 요청에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error requesting review:', error);
+      alert('재심사 요청 중 오류가 발생했습니다.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -338,10 +399,21 @@ export default function ClientDashboard() {
                     {data.application.policy_funds.map((fund: string, idx: number) => {
                       const amount = data.application.fund_amounts?.[fund] || 0;
                       return (
-                        <div key={idx} className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 shadow-md">
+                        <div key={idx} className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 shadow-md hover:shadow-lg transition-shadow">
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-blue-900">• {fund}</span>
-                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">진행중</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">진행중</span>
+                              <button
+                                onClick={() => handleDeleteFund(fund)}
+                                className="p-1 hover:bg-red-100 rounded-lg transition-colors group"
+                                title="이 정책자금 삭제"
+                              >
+                                <svg className="w-5 h-5 text-gray-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
                           {amount > 0 && (
                             <div className="flex items-center justify-between pt-2 border-t border-blue-100">
@@ -370,6 +442,24 @@ export default function ClientDashboard() {
                 </div>
               )}
             </div>
+            
+            {/* 재심사 버튼 - 반려 또는 보완 상태일 때만 표시 */}
+            {(data.application.status === '반려' || data.application.status === '보완') && (
+              <div className="mt-4">
+                <button
+                  onClick={handleRequestReview}
+                  className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  재심사 요청하기
+                </button>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  재심사를 요청하면 상태가 "접수대기"로 변경되어 다시 검토됩니다.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -428,115 +518,208 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {/* AI 진단 모달 */}
+      {/* AI 진단 모달 - 노션 스타일 */}
       {showDiagnosis && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-3xl font-bold text-gray-800 mb-4 text-center">
-              🤖 AI 진단 결과
-            </h3>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* 헤더 */}
+            <div className="mb-6 pb-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl">🤖</span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">AI 진단 결과</h3>
+                    <p className="text-sm text-gray-500">맞춤형 정책자금 추천</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDiagnosis(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             
             {diagnosisStep === 'select' && (
               <>
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-lg font-bold text-green-900 text-center">
-                    SOHO 등급: {data.client?.soho_grade || 'C'}등급
-                  </p>
-                  <p className="text-sm text-gray-600 text-center mt-2">
-                    회원님의 정보를 분석하여 추천 정책자금을 선정했습니다
-                  </p>
+                {/* 등급 및 한도 정보 카드 - 노션 스타일 */}
+                <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">🎯</span>
+                        <span className="text-sm font-medium text-gray-600">SOHO 등급</span>
+                      </div>
+                      <div className="text-3xl font-bold text-blue-600">
+                        {data.client?.soho_grade || 'C'}등급
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl">💰</span>
+                        <span className="text-sm font-medium text-gray-600">최대 대출 한도</span>
+                      </div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {(data.client?.max_loan_limit || 0).toLocaleString()}원
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex items-start gap-2 bg-white rounded-lg p-3">
+                    <span className="text-lg">💡</span>
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      회원님의 신용점수, 매출액, 부채비율, 기술력을 종합 분석하여 <strong className="text-blue-600">{availableFunds.length}개의 정책자금</strong>을 추천해드립니다.
+                    </p>
+                  </div>
                 </div>
 
-                <h4 className="text-xl font-bold text-gray-800 mb-4">
-                  📋 추천 정책자금 ({availableFunds.length}개)
-                </h4>
-                <p className="text-sm text-gray-600 mb-4">
-                  원하시는 정책자금을 선택해주세요 (복수 선택 가능)
-                </p>
+                {/* 정책자금 목록 - 노션 스타일 카드 */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xl">📋</span>
+                    <h4 className="text-lg font-bold text-gray-900">
+                      추천 정책자금
+                    </h4>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                      {availableFunds.length}개
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-4 pl-7">
+                    원하시는 정책자금을 선택해주세요 (복수 선택 가능)
+                  </p>
+                </div>
 
                 <div className="space-y-3 mb-6">
                   {availableFunds.map((fund, index) => {
                     const details = fundDetails[fund];
+                    const isSelected = selectedFunds.includes(fund);
                     return (
                       <div
                         key={index}
                         onClick={() => toggleFund(fund)}
-                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                          selectedFunds.includes(fund)
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                            : 'border-gray-300 bg-white hover:border-blue-300'
-                        }`}
+                        className={`group relative rounded-xl border-2 transition-all duration-200 cursor-pointer
+                          ${isSelected 
+                            ? 'border-blue-500 bg-blue-50 shadow-lg scale-[1.02]' 
+                            : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
+                          }`}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-gray-800">{fund}</span>
+                        <div className="p-5">
+                          {/* 헤더 */}
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-lg">
+                                  {details?.category?.includes('중진공') ? '🏢' : 
+                                   details?.category?.includes('소진공') ? '🏪' : 
+                                   details?.category?.includes('신용보증') ? '🛡️' : 
+                                   details?.category?.includes('기술보증') ? '🔬' : '💼'}
+                                </span>
+                                <h5 className="font-bold text-gray-900 text-base">{fund}</h5>
+                              </div>
                               {details?.category && (
-                                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">
                                   {details.category}
                                 </span>
                               )}
                             </div>
-                            {details && (
-                              <div className="text-sm text-gray-600 space-y-1 mt-2">
-                                <p className="text-xs">{details.description}</p>
-                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                  <div className="text-xs">
-                                    <span className="text-gray-500">최대한도:</span>
-                                    <span className="font-semibold text-blue-600 ml-1">
-                                      {details.max_amount?.toLocaleString()}원
-                                    </span>
+                            <div className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all
+                              ${isSelected 
+                                ? 'border-blue-500 bg-blue-500 scale-110' 
+                                : 'border-gray-300 group-hover:border-blue-400'
+                              }`}>
+                              {isSelected && (
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* 상세 정보 */}
+                          {details && (
+                            <div className="space-y-3">
+                              <p className="text-sm text-gray-600 leading-relaxed pl-7">
+                                {details.description}
+                              </p>
+                              
+                              {/* 핵심 정보 그리드 - 노션 스타일 */}
+                              <div className="grid grid-cols-2 gap-3 pl-7">
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-sm">💵</span>
+                                    <span className="text-xs font-medium text-gray-600">최대 한도</span>
                                   </div>
-                                  <div className="text-xs">
-                                    <span className="text-gray-500">금리:</span>
-                                    <span className="font-semibold text-green-600 ml-1">
-                                      {details.interest_rate}%
-                                    </span>
+                                  <p className="text-lg font-bold text-blue-700">
+                                    {details.max_amount?.toLocaleString()}원
+                                  </p>
+                                </div>
+                                
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-sm">📊</span>
+                                    <span className="text-xs font-medium text-gray-600">금리</span>
                                   </div>
-                                  <div className="text-xs">
-                                    <span className="text-gray-500">대출기간:</span>
-                                    <span className="font-semibold text-purple-600 ml-1">
-                                      {details.period_months}개월
-                                    </span>
+                                  <p className="text-lg font-bold text-green-700">
+                                    연 {details.interest_rate}%
+                                  </p>
+                                </div>
+                                
+                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 border border-purple-200">
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-sm">⏰</span>
+                                    <span className="text-xs font-medium text-gray-600">대출 기간</span>
                                   </div>
-                                  <div className="text-xs col-span-2">
-                                    <span className="text-gray-500">자격요건:</span>
-                                    <span className="font-medium text-gray-700 ml-1">
-                                      {details.eligibility}
-                                    </span>
+                                  <p className="text-lg font-bold text-purple-700">
+                                    {details.period_months}개월
+                                  </p>
+                                </div>
+                                
+                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-sm">✅</span>
+                                    <span className="text-xs font-medium text-gray-600">자격 요건</span>
                                   </div>
+                                  <p className="text-xs font-semibold text-orange-700 leading-tight">
+                                    {details.eligibility}
+                                  </p>
                                 </div>
                               </div>
-                            )}
-                          </div>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            selectedFunds.includes(fund)
-                              ? 'border-blue-500 bg-blue-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {selectedFunds.includes(fund) && (
-                              <span className="text-white text-sm">✓</span>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="flex gap-3">
+                {/* 액션 버튼 - 노션 스타일 */}
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => setShowDiagnosis(false)}
-                    className="flex-1 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-colors"
+                    className="flex-1 py-3 px-4 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all"
                   >
-                    취소
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      취소
+                    </span>
                   </button>
                   <button
                     onClick={handleSubmitApplication}
                     disabled={selectedFunds.length === 0}
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed disabled:shadow-none"
                   >
-                    신청하기 ({selectedFunds.length}개 선택)
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      신청하기 ({selectedFunds.length}개 선택)
+                    </span>
                   </button>
                 </div>
               </>
