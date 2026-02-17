@@ -331,6 +331,14 @@ export default function ClientDashboard() {
             >
               내 QR 코드
             </button>
+            {data.application && (
+              <button
+                onClick={handleRequestReview}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-md"
+              >
+                🔄 재심사 요청
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
