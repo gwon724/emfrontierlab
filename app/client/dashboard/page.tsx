@@ -16,6 +16,7 @@ export default function ClientDashboard() {
   const [diagnosisStep, setDiagnosisStep] = useState<'start' | 'select' | 'complete'>('start');
   const [availableFunds, setAvailableFunds] = useState<string[]>([]);
   const [selectedFunds, setSelectedFunds] = useState<string[]>([]);
+  const [fundDetails, setFundDetails] = useState<{[key: string]: any}>({});
 
   // 자동 로그아웃 타이머 (10분)
   const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10분 = 600,000ms
@@ -157,6 +158,18 @@ export default function ClientDashboard() {
         const result = await res.json();
         console.log('🔵 AI 진단 결과:', result);
         setAvailableFunds(result.recommended_funds);
+        
+        // 정책자금 상세 정보 가져오기
+        const fundsRes = await fetch('/api/policy-funds');
+        if (fundsRes.ok) {
+          const fundsData = await fundsRes.json();
+          const detailsMap: {[key: string]: any} = {};
+          fundsData.funds.forEach((fund: any) => {
+            detailsMap[fund.fund_name] = fund;
+          });
+          setFundDetails(detailsMap);
+        }
+        
         setDiagnosisStep('select');
         setShowDiagnosis(true);
         console.log('🔵 모달 표시됨');
@@ -321,14 +334,39 @@ export default function ClientDashboard() {
                       {data.application.policy_funds.length}개
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {data.application.policy_funds.map((fund: string, idx: number) => (
-                      <div key={idx} className="text-sm text-blue-900 bg-white px-3 py-2 rounded-lg border border-blue-300 flex items-center justify-between shadow-sm">
-                        <span className="font-medium">• {fund}</span>
-                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">진행중</span>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 gap-3">
+                    {data.application.policy_funds.map((fund: string, idx: number) => {
+                      const amount = data.application.fund_amounts?.[fund] || 0;
+                      return (
+                        <div key={idx} className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 shadow-md">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-bold text-blue-900">• {fund}</span>
+                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">진행중</span>
+                          </div>
+                          {amount > 0 && (
+                            <div className="flex items-center justify-between pt-2 border-t border-blue-100">
+                              <span className="text-xs text-gray-600">신청금액</span>
+                              <span className="text-lg font-bold text-green-600">
+                                {amount.toLocaleString()}원
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
+                  {data.application.fund_amounts && Object.keys(data.application.fund_amounts).length > 0 && (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold text-gray-800">💰 총 신청 금액</span>
+                        <span className="text-2xl font-bold text-orange-600">
+                          {Object.values(data.application.fund_amounts)
+                            .reduce((sum: number, val: any) => sum + (val || 0), 0)
+                            .toLocaleString()}원
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -417,30 +455,73 @@ export default function ClientDashboard() {
                 </p>
 
                 <div className="space-y-3 mb-6">
-                  {availableFunds.map((fund, index) => (
-                    <div
-                      key={index}
-                      onClick={() => toggleFund(fund)}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        selectedFunds.includes(fund)
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-300 bg-white hover:border-blue-300'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-gray-800">{fund}</span>
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                  {availableFunds.map((fund, index) => {
+                    const details = fundDetails[fund];
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => toggleFund(fund)}
+                        className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                           selectedFunds.includes(fund)
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-gray-300'
-                        }`}>
-                          {selectedFunds.includes(fund) && (
-                            <span className="text-white text-sm">✓</span>
-                          )}
+                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            : 'border-gray-300 bg-white hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-gray-800">{fund}</span>
+                              {details?.category && (
+                                <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                                  {details.category}
+                                </span>
+                              )}
+                            </div>
+                            {details && (
+                              <div className="text-sm text-gray-600 space-y-1 mt-2">
+                                <p className="text-xs">{details.description}</p>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                  <div className="text-xs">
+                                    <span className="text-gray-500">최대한도:</span>
+                                    <span className="font-semibold text-blue-600 ml-1">
+                                      {details.max_amount?.toLocaleString()}원
+                                    </span>
+                                  </div>
+                                  <div className="text-xs">
+                                    <span className="text-gray-500">금리:</span>
+                                    <span className="font-semibold text-green-600 ml-1">
+                                      {details.interest_rate}%
+                                    </span>
+                                  </div>
+                                  <div className="text-xs">
+                                    <span className="text-gray-500">대출기간:</span>
+                                    <span className="font-semibold text-purple-600 ml-1">
+                                      {details.period_months}개월
+                                    </span>
+                                  </div>
+                                  <div className="text-xs col-span-2">
+                                    <span className="text-gray-500">자격요건:</span>
+                                    <span className="font-medium text-gray-700 ml-1">
+                                      {details.eligibility}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                            selectedFunds.includes(fund)
+                              ? 'border-blue-500 bg-blue-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {selectedFunds.includes(fund) && (
+                              <span className="text-white text-sm">✓</span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="flex gap-3">

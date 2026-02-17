@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
         id: application.id,
         status: application.status,
         policy_funds: application.policy_funds ? JSON.parse(application.policy_funds) : [],
+        fund_amounts: application.fund_amounts ? JSON.parse(application.fund_amounts) : {},
         notes: application.notes,
         updated_at: application.updated_at,
       } : null,
