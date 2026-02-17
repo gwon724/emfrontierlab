@@ -14,6 +14,7 @@ export default function ClientRegister() {
     password: '',
     confirmPassword: '',
     name: '',
+    phone: '',
     age: '',
     gender: '남성',
     business_years: '',
@@ -45,6 +46,13 @@ export default function ClientRegister() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // 전화번호 유효성 검사
+    const phoneRegex = /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/;
+    if (!formData.phone || !phoneRegex.test(formData.phone.replace(/-/g, ''))) {
+      setError('올바른 전화번호 형식으로 입력해주세요. (예: 010-1234-5678)');
+      return;
+    }
 
     // 비밀번호 유효성 검사 (영어, 숫자, 특수문자 포함 8-20자)
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
@@ -182,6 +190,24 @@ export default function ClientRegister() {
                     placeholder="홍길동"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    전화번호 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="010-1234-5678"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    하이픈(-)을 포함하여 입력해주세요
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

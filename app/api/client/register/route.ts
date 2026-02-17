@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       name,
+      phone,
       age,
       gender,
       annual_revenue,
@@ -29,6 +30,22 @@ export async function POST(request: NextRequest) {
       agree_privacy,
       agree_confidentiality
     } = body;
+
+    // 전화번호 유효성 검사
+    if (!phone) {
+      return NextResponse.json(
+        { error: '전화번호는 필수 입력 항목입니다.' },
+        { status: 400 }
+      );
+    }
+
+    const phoneRegex = /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/;
+    if (!phoneRegex.test(phone.replace(/-/g, ''))) {
+      return NextResponse.json(
+        { error: '올바른 전화번호 형식이 아닙니다.' },
+        { status: 400 }
+      );
+    }
 
     // 총 부채 계산
     const totalDebt = 
@@ -72,13 +89,13 @@ export async function POST(request: NextRequest) {
     // 클라이언트 등록
     const result = db.prepare(`
       INSERT INTO clients (
-        email, password, name, age, gender, annual_revenue, debt,
+        email, password, name, phone, age, gender, annual_revenue, debt,
         debt_policy_fund, debt_credit_loan, debt_secondary_loan, debt_card_loan,
         kcb_score, nice_score, has_technology, soho_grade,
         agree_credit_check, agree_privacy, agree_confidentiality
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      email, hashedPassword, name, age, gender, annual_revenue, totalDebt,
+      email, hashedPassword, name, phone, age, gender, annual_revenue, totalDebt,
       debt_policy_fund || 0, debt_credit_loan || 0, debt_secondary_loan || 0, debt_card_loan || 0,
       kcb_score || null, nice_score, has_technology ? 1 : 0, diagnosis.sohoGrade,
       1, 1, 1

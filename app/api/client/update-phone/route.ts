@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { initDatabase, getDatabase } from '@/lib/db';
+import { verifyToken } from '@/lib/auth';
+
+export async function PUT(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: '인증이 필요합니다.' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const payload = verifyToken(token);
+    if (!payload || payload.type !== 'client') {
+      return NextResponse.json({ error: '유효하지 않은 토큰입니다.' }, { status: 401 });
+    }
+
+    const { phone } = await request.json();
+
+    // 전화번호 유효성 검사
+    if (!phone) {
+      return NextResponse.json(
+        { error: '전화번호는 필수 입력 항목입니다.' },
+        { status: 400 }
+      );
+    }
+
+    const phoneRegex = /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/;
+    if (!phoneRegex.test(phone.replace(/-/g, ''))) {
+      return NextResponse.json(
+        { error: '올바른 전화번호 형식이 아닙니다.' },
+        { status: 400 }
+      );
+    }
+
+    initDatabase();
+    const db = getDatabase();
+
+    // 전화번호 업데이트
+    db.prepare(`
+      UPDATE clients 
+      SET phone = ? 
+      WHERE id = ?
+    `).run(phone, payload.id);
+
+    return NextResponse.json({
+      success: true,
+      message: '전화번호가 변경되었습니다.'
+    });
+
+  } catch (error: any) {
+    console.error('Update phone error:', error);
+    return NextResponse.json(
+      { error: '전화번호 변경 중 오류가 발생했습니다: ' + error.message },
+      { status: 500 }
+    );
+  }
+}

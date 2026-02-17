@@ -11,6 +11,10 @@ export default function ClientDashboard() {
   const [qrCode, setQrCode] = useState('');
   const [showQR, setShowQR] = useState(false);
   
+  // 전화번호 수정 관련 state
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [newPhone, setNewPhone] = useState('');
+  
   // AI 진단 관련 state
   const [showDiagnosis, setShowDiagnosis] = useState(false);
   const [diagnosisStep, setDiagnosisStep] = useState<'start' | 'select' | 'complete'>('start');
@@ -134,6 +138,39 @@ export default function ClientDashboard() {
     localStorage.removeItem('clientToken');
     localStorage.removeItem('clientData');
     router.push('/client/login');
+  };
+
+  // 전화번호 수정 핸들러
+  const handleUpdatePhone = async () => {
+    const phoneRegex = /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/;
+    if (!newPhone || !phoneRegex.test(newPhone.replace(/-/g, ''))) {
+      alert('올바른 전화번호 형식으로 입력해주세요. (예: 010-1234-5678)');
+      return;
+    }
+
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/update-phone', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ phone: newPhone })
+      });
+
+      if (res.ok) {
+        alert('전화번호가 변경되었습니다.');
+        setEditingPhone(false);
+        fetchData(); // 데이터 새로고침
+      } else {
+        const data = await res.json();
+        alert(data.error || '전화번호 변경에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error updating phone:', error);
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    }
   };
 
   // AI 진단 시작
@@ -490,6 +527,48 @@ export default function ClientDashboard() {
             <div>
               <label className="text-sm font-medium text-gray-600">이메일</label>
               <p className="text-lg font-semibold text-gray-800">{data.client?.email}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600 mb-1 block">전화번호</label>
+              {editingPhone ? (
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="010-1234-5678"
+                  />
+                  <button
+                    onClick={handleUpdatePhone}
+                    className="px-4 py-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white rounded-lg hover:from-gray-900 hover:to-black transition-all"
+                  >
+                    저장
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingPhone(false);
+                      setNewPhone('');
+                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all"
+                  >
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-semibold text-gray-800">{data.client?.phone || '미등록'}</p>
+                  <button
+                    onClick={() => {
+                      setEditingPhone(true);
+                      setNewPhone(data.client?.phone || '');
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    수정
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
