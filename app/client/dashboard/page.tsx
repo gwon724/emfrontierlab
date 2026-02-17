@@ -449,23 +449,23 @@ export default function ClientDashboard() {
               )}
             </div>
             
-            {/* 재심사 버튼 - 반려 또는 보완 상태일 때만 표시 */}
-            {(data.application.status === '반려' || data.application.status === '보완') && (
-              <div className="mt-4">
-                <button
-                  onClick={handleRequestReview}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  재심사 요청하기
-                </button>
-                <p className="text-xs text-gray-500 text-center mt-2">
-                  재심사를 요청하면 상태가 "접수대기"로 변경되어 다시 검토됩니다.
-                </p>
-              </div>
-            )}
+            {/* 재심사 버튼 - 항상 표시 */}
+            <div className="mt-4">
+              <button
+                onClick={handleRequestReview}
+                className="w-full py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                재심사 요청하기
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                {data.application.status === '반려' || data.application.status === '보완' 
+                  ? '재심사를 요청하면 상태가 "접수대기"로 변경되어 다시 검토됩니다.' 
+                  : '현재 진행 중인 심사를 재검토 요청합니다.'}
+              </p>
+            </div>
           </div>
         )}
 
