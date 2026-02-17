@@ -410,7 +410,7 @@ export default function ClientDashboard() {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 신청 진행 상황</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {['접수대기', '접수완료', '진행중', '진행완료', '집행완료', '보완', '반려'].map((status) => (
+              {['접수대기', '접수완료', '진행중', '진행완료', '집행완료', '보완', '반려'].map((status, index) => (
                 <div
                   key={status}
                   className={`border-2 rounded-lg p-4 text-center transition-all ${
@@ -421,7 +421,7 @@ export default function ClientDashboard() {
                 >
                   <div className="text-sm font-medium">{status}</div>
                   <div className="text-2xl font-bold mt-2">
-                    {data.application?.status === status ? '✓' : ''}
+                    {data.application?.status === status ? (index + 1) : ''}
                   </div>
                 </div>
               ))}
