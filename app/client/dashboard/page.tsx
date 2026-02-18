@@ -347,6 +347,40 @@ export default function ClientDashboard() {
     }
   };
 
+  // 모달에서 정책자금 신청 제출
+  const handleSubmitApplicationFromModal = async () => {
+    if (selectedFunds.length === 0) {
+      alert('최소 1개 이상의 정책자금을 선택해주세요.');
+      return;
+    }
+
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/submit-application', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ selected_funds: selectedFunds })
+      });
+
+      if (res.ok) {
+        alert('정책자금 신청이 완료되었습니다!');
+        setShowReviewResultModal(false);
+        setReviewResultData(null);
+        setSelectedFunds([]);
+        fetchData(); // 데이터 새로고침
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || '신청 제출에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      alert('신청 제출 중 오류가 발생했습니다.');
+    }
+  };
+
   // 정책자금 삭제
   const handleDeleteFund = async (fundName: string) => {
     if (!confirm(`"${fundName}"을(를) 삭제하시겠습니까?`)) {
@@ -1612,32 +1646,66 @@ export default function ClientDashboard() {
 
                 {/* 정책자금별 세부 한도 */}
                 <div className="mb-6">
-                  <h4 className="font-semibold text-lg mb-3">정책자금별 세부 한도</h4>
+                  <h4 className="font-semibold text-lg mb-3">
+                    정책자금별 세부 한도
+                    <span className="text-sm text-gray-500 ml-2">(신청할 자금을 선택하세요)</span>
+                  </h4>
                   <div className="space-y-3">
                     {reviewResultData.recommendedFunds && reviewResultData.recommendedFunds.length > 0 ? (
-                      reviewResultData.recommendedFunds.map((fund: any, index: number) => (
-                        <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
-                              <h5 className="font-semibold text-gray-800">{fund.name || fund}</h5>
-                              <p className="text-xs text-gray-500">{fund.category || '중진공'}</p>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-lg font-bold text-blue-600">
-                                최대 {(fund.max_amount || 80000000).toLocaleString()}원
+                      reviewResultData.recommendedFunds.map((fund: any, index: number) => {
+                        const fundName = fund.name || fund;
+                        const isSelected = selectedFunds.includes(fundName);
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            onClick={() => {
+                              setSelectedFunds(prev => 
+                                prev.includes(fundName) 
+                                  ? prev.filter(f => f !== fundName)
+                                  : [...prev, fundName]
+                              );
+                            }}
+                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              isSelected 
+                                ? 'border-blue-500 bg-blue-50' 
+                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-start mb-2">
+                              <div className="flex-shrink-0 mt-1 mr-3">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  className="w-5 h-5 text-blue-600 rounded cursor-pointer"
+                                />
                               </div>
-                              <div className="text-xs text-gray-500">
-                                금리 {fund.interest_rate || '2.5%'} | 60개월
+                              <div className="flex-grow">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h5 className="font-semibold text-gray-800">{fundName}</h5>
+                                    <p className="text-xs text-gray-500">{fund.category || '중진공'}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-lg font-bold text-blue-600">
+                                      최대 {(fund.max_amount || 80000000).toLocaleString()}원
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      금리 {fund.interest_rate || '2.5%'} | 60개월
+                                    </div>
+                                  </div>
+                                </div>
+                                {fund.requirements && (
+                                  <p className="text-xs text-gray-600 mt-2">
+                                    <span className="font-medium">대상:</span> {fund.requirements}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
-                          {fund.requirements && (
-                            <p className="text-xs text-gray-600 mt-2">
-                              <span className="font-medium">대상:</span> {fund.requirements}
-                            </p>
-                          )}
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
                         <p className="text-yellow-800">
@@ -1646,19 +1714,50 @@ export default function ClientDashboard() {
                       </div>
                     )}
                   </div>
+                  
+                  {/* 선택된 자금 개수 표시 */}
+                  {reviewResultData.recommendedFunds && reviewResultData.recommendedFunds.length > 0 && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-semibold">선택된 자금: {selectedFunds.length}개</span>
+                        {selectedFunds.length > 0 && (
+                          <span className="text-gray-500 ml-2">
+                            ({selectedFunds.join(', ')})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            <button
-              onClick={() => {
-                setShowReviewResultModal(false);
-                setReviewResultData(null);
-              }}
-              className="w-full mt-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
-            >
-              닫기
-            </button>
+            {/* 버튼 영역 */}
+            <div className="flex gap-3">
+              {reviewResultData.recommendedFunds && reviewResultData.recommendedFunds.length > 0 && (
+                <button
+                  onClick={handleSubmitApplicationFromModal}
+                  disabled={selectedFunds.length === 0}
+                  className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+                    selectedFunds.length === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {selectedFunds.length === 0 ? '자금을 선택해주세요' : `선택한 ${selectedFunds.length}개 자금 신청하기`}
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setShowReviewResultModal(false);
+                  setReviewResultData(null);
+                  setSelectedFunds([]);
+                }}
+                className="flex-1 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+              >
+                닫기
+              </button>
+            </div>
           </div>
         </div>
       )}
