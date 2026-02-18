@@ -45,7 +45,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
       <style jsx global>{`
         /* 워터마크 스타일 */
         .watermark {
-          position: fixed;
+          position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
@@ -124,13 +124,13 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
         }
       `}</style>
       
-      {/* 워터마크 */}
-      <div className="watermark">
-        <img src="/emfrontier-logo.png" alt="EMFRONTIER" />
-      </div>
-      
       <div id="client-info-overlay" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div id="client-info-container" className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div id="client-info-container" className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+        
+        {/* 워터마크 */}
+        <div className="watermark">
+          <img src="/emfrontier-logo.png" alt="EMFRONTIER" />
+        </div>
         
         {/* 화면용 헤더 (프린트 시 숨김) */}
         <div className="print-hide sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
