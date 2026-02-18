@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -31,6 +31,18 @@ export default function ClientRegister() {
     agree_privacy: false,
     agree_confidentiality: false,
   });
+
+  // 부채 자동 합산
+  useEffect(() => {
+    const totalDebt = (parseInt(formData.debt_policy_fund || '0') || 0) +
+                      (parseInt(formData.debt_credit_loan || '0') || 0) +
+                      (parseInt(formData.debt_secondary_loan || '0') || 0) +
+                      (parseInt(formData.debt_card_loan || '0') || 0);
+    
+    if (totalDebt.toString() !== formData.debt) {
+      setFormData(prev => ({ ...prev, debt: totalDebt.toString() }));
+    }
+  }, [formData.debt_policy_fund, formData.debt_credit_loan, formData.debt_secondary_loan, formData.debt_card_loan]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;

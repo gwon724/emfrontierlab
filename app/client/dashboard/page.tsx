@@ -817,6 +817,33 @@ export default function ClientDashboard() {
           {/* 기타 정보 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <label className="text-sm font-medium text-gray-600">연매출</label>
+              <p className="text-lg font-semibold text-gray-800">
+                {data.client?.annual_revenue?.toLocaleString()}원
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">총 부채</label>
+              <p className="text-lg font-semibold text-gray-800">
+                {((data.client?.debt_policy_fund || 0) + 
+                  (data.client?.debt_credit_loan || 0) + 
+                  (data.client?.debt_secondary_loan || 0) + 
+                  (data.client?.debt_card_loan || 0)).toLocaleString()}원
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                정책자금 {(data.client?.debt_policy_fund || 0).toLocaleString()} + 
+                신용대출 {(data.client?.debt_credit_loan || 0).toLocaleString()} + 
+                2금융권 {(data.client?.debt_secondary_loan || 0).toLocaleString()} + 
+                카드론 {(data.client?.debt_card_loan || 0).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">업력</label>
+              <p className="text-lg font-semibold text-gray-800">
+                {data.client?.business_years || 0}년
+              </p>
+            </div>
+            <div>
               <label className="text-sm font-medium text-gray-600">기술력 보유</label>
               <p className="text-lg font-semibold text-gray-800">
                 {data.client?.has_technology ? '✅ 예' : '❌ 아니오'}
