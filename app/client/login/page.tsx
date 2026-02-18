@@ -124,9 +124,13 @@ export default function ClientLogin() {
               <Link href="/client/register" className="text-blue-600 hover:text-blue-700 font-medium">
                 회원가입
               </Link>
-              <Link href="#" className="text-gray-600 hover:text-gray-700">
+              <button
+                type="button"
+                onClick={() => alert('아이디/비밀번호 찾기 기능은 준비 중입니다.\n\n문의사항은 고객센터(admin@emfrontier.com)로 연락 부탁드립니다.')}
+                className="text-gray-600 hover:text-gray-700 cursor-pointer"
+              >
                 아이디/비밀번호 찾기
-              </Link>
+              </button>
             </div>
 
             <button
