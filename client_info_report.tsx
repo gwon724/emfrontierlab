@@ -9,18 +9,35 @@ interface ClientInfoReportProps {
 
 export default function ClientInfoReport({ client, onClose }: ClientInfoReportProps) {
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+  const qrPrintCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (qrCanvasRef.current && client?.id) {
+    if (client?.id) {
       const shareUrl = `${window.location.origin}/app/share/${client.id}`;
-      QRCode.toCanvas(qrCanvasRef.current, shareUrl, {
-        width: 96,
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      });
+      
+      // 화면용 QR 코드 생성
+      if (qrCanvasRef.current) {
+        QRCode.toCanvas(qrCanvasRef.current, shareUrl, {
+          width: 96,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        });
+      }
+      
+      // 프린트용 QR 코드 생성
+      if (qrPrintCanvasRef.current) {
+        QRCode.toCanvas(qrPrintCanvasRef.current, shareUrl, {
+          width: 96,
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        });
+      }
     }
   }, [client]);
 
@@ -61,7 +78,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
 
         {/* 프린트 전용 QR 코드 (화면에서는 숨김) */}
         <canvas
-          ref={qrCanvasRef}
+          ref={qrPrintCanvasRef}
           className="print-only"
           style={{ display: 'none' }}
         />
