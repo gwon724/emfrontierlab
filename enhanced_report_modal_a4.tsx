@@ -1,6 +1,12 @@
 {/* 📊 AI 분석 보고서 모달 */}
 {showReportModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto print:bg-white print:block print:p-0" id="report-modal-overlay">
+    
+    {/* 워터마크 */}
+    <div className="watermark">
+      <img src="/emfrontier-logo.png" alt="EMFRONTIER" />
+    </div>
+    
     <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl print:max-w-full print:shadow-none print:rounded-none report-page" id="report-modal-container">
       
       {/* 헤더 - Only show on screen, not in print */}

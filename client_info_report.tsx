@@ -43,6 +43,25 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
   return (
     <>
       <style jsx global>{`
+        /* 워터마크 스타일 */
+        .watermark {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 0.08;
+          pointer-events: none;
+          z-index: 999;
+          width: 400px;
+          height: 400px;
+        }
+        
+        .watermark img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+        
         @media print {
           body {
             margin: 0;
@@ -73,6 +92,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
           
           .report-page {
             page-break-after: always;
+            position: relative;
           }
           
           .report-page:last-child {
@@ -87,6 +107,12 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
             size: A4;
             margin: 20mm;
           }
+          
+          /* 프린트 시 워터마크 */
+          .watermark {
+            position: fixed;
+            opacity: 0.08;
+          }
         }
         
         @media screen {
@@ -95,6 +121,11 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
           }
         }
       `}</style>
+      
+      {/* 워터마크 */}
+      <div className="watermark">
+        <img src="/emfrontier-logo.png" alt="EMFRONTIER" />
+      </div>
       
       <div id="client-info-overlay" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div id="client-info-container" className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
