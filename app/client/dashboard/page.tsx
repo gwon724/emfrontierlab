@@ -379,7 +379,7 @@ export default function ClientDashboard() {
 
   // 재심사 요청
   const handleRequestReview = async () => {
-    if (!confirm('재심사를 요청하시겠습니까? 상태가 "접수대기"로 변경됩니다.')) {
+    if (!confirm('AI 재심사를 진행하시겠습니까? 즉시 새로운 진단 결과를 확인하실 수 있습니다.')) {
       return;
     }
 
@@ -396,7 +396,7 @@ export default function ClientDashboard() {
       const result = await res.json();
       
       if (res.ok) {
-        alert(result.message);
+        alert(`✅ ${result.message}\n\n📊 SOHO 등급: ${result.diagnosis.sohoGrade}\n💰 최대 한도: ${result.diagnosis.maxLoanLimit.toLocaleString()}원\n🎯 추천 정책자금: ${result.diagnosis.recommendedFunds.length}개`);
         fetchData(); // 데이터 새로고침
       } else {
         alert(result.error || '재심사 요청에 실패했습니다.');
