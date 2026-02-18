@@ -9,68 +9,32 @@ interface ClientInfoReportProps {
 
 export default function ClientInfoReport({ client, onClose }: ClientInfoReportProps) {
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
-  const qrPrintCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  // client가 data 객체 전체일 경우 client.client로 접근
-  const clientInfo = client?.client || client;
 
   useEffect(() => {
-    if (clientInfo?.id) {
-      const shareUrl = `${window.location.origin}/app/share/${clientInfo.id}`;
-      console.log('🔵 Generating QR code for URL:', shareUrl);
-      console.log('🔵 Client info:', clientInfo);
-      
-      // 화면용 QR 코드 생성
-      if (qrCanvasRef.current) {
-        QRCode.toCanvas(qrCanvasRef.current, shareUrl, {
-          width: 96,
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#ffffff',
-          },
-        }).then(() => {
-          console.log('✅ Screen QR code generated successfully');
-        }).catch((error) => {
-          console.error('❌ Screen QR code generation failed:', error);
-        });
-      } else {
-        console.warn('⚠️ qrCanvasRef.current is null');
-      }
-      
-      // 프린트용 QR 코드 생성
-      if (qrPrintCanvasRef.current) {
-        QRCode.toCanvas(qrPrintCanvasRef.current, shareUrl, {
-          width: 96,
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#ffffff',
-          },
-        }).then(() => {
-          console.log('✅ Print QR code generated successfully');
-        }).catch((error) => {
-          console.error('❌ Print QR code generation failed:', error);
-        });
-      } else {
-        console.warn('⚠️ qrPrintCanvasRef.current is null');
-      }
-    } else {
-      console.error('❌ Client or client.id is missing. Received:', client);
+    if (qrCanvasRef.current && client?.id) {
+      const shareUrl = `${window.location.origin}/app/share/${client.id}`;
+      QRCode.toCanvas(qrCanvasRef.current, shareUrl, {
+        width: 96,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+      });
     }
-  }, [client, clientInfo]);
+  }, [client]);
 
   const handlePrint = () => {
     window.print();
   };
 
-  if (!clientInfo) return null;
+  if (!client) return null;
 
   // 총 부채 계산
-  const totalDebt = (clientInfo.debt_policy_fund || 0) +
-                    (clientInfo.debt_credit_loan || 0) +
-                    (clientInfo.debt_secondary_loan || 0) +
-                    (clientInfo.debt_card_loan || 0);
+  const totalDebt = (client.debt_policy_fund || 0) +
+                    (client.debt_credit_loan || 0) +
+                    (client.debt_secondary_loan || 0) +
+                    (client.debt_card_loan || 0);
 
   return (
     <div id="client-info-overlay" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -97,7 +61,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
 
         {/* 프린트 전용 QR 코드 (화면에서는 숨김) */}
         <canvas
-          ref={qrPrintCanvasRef}
+          ref={qrCanvasRef}
           className="print-only"
           style={{ display: 'none' }}
         />
@@ -130,7 +94,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
                 </div>
                 <div>
                   <span className="text-gray-600">고객 ID:</span>
-                  <span className="ml-2 font-semibold">{clientInfo.id}</span>
+                  <span className="ml-2 font-semibold">{client.id}</span>
                 </div>
               </div>
             </div>
@@ -143,15 +107,15 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                 <div className="flex border-b border-gray-200 pb-2">
                   <span className="text-gray-600 font-medium w-32">이름</span>
-                  <span className="text-gray-900 font-semibold flex-1">{clientInfo.name}</span>
+                  <span className="text-gray-900 font-semibold flex-1">{client.name}</span>
                 </div>
                 <div className="flex border-b border-gray-200 pb-2">
                   <span className="text-gray-600 font-medium w-32">나이</span>
-                  <span className="text-gray-900 font-semibold flex-1">{clientInfo.age}세</span>
+                  <span className="text-gray-900 font-semibold flex-1">{client.age}세</span>
                 </div>
                 <div className="flex border-b border-gray-200 pb-2">
                   <span className="text-gray-600 font-medium w-32">성별</span>
-                  <span className="text-gray-900 font-semibold flex-1">{clientInfo.gender}</span>
+                  <span className="text-gray-900 font-semibold flex-1">{client.gender}</span>
                 </div>
                 <div className="flex border-b border-gray-200 pb-2">
                   <span className="text-gray-600 font-medium w-32">전화번호</span>
@@ -159,7 +123,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
                 </div>
                 <div className="flex border-b border-gray-200 pb-2 col-span-2">
                   <span className="text-gray-600 font-medium w-32">이메일</span>
-                  <span className="text-gray-900 font-semibold flex-1">{clientInfo.email}</span>
+                  <span className="text-gray-900 font-semibold flex-1">{client.email}</span>
                 </div>
                 <div className="flex border-b border-gray-200 pb-2 col-span-2">
                   <span className="text-gray-600 font-medium w-32">가입일</span>
@@ -179,7 +143,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
                 <div className="grid grid-cols-3 gap-6 text-center">
                   <div className="bg-white p-4 rounded-lg shadow-sm">
                     <div className="text-sm text-gray-600 mb-2">SOHO 등급</div>
-                    <div className="text-3xl font-bold text-gray-900">{clientInfo.soho_grade}</div>
+                    <div className="text-3xl font-bold text-gray-900">{client.soho_grade}</div>
                     <div className="text-xs text-gray-500 mt-1">등급</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -260,7 +224,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">고객 정보 보고서 (계속)</h1>
-                <p className="text-sm text-gray-600">{clientInfo.name} 님</p>
+                <p className="text-sm text-gray-600">{client.name} 님</p>
               </div>
               <div className="text-right text-sm text-gray-500">
                 <div>페이지 2/2</div>
