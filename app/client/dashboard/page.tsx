@@ -711,31 +711,125 @@ export default function ClientDashboard() {
         )}
 
         {/* 진행 상황 카드 - 신청 후에만 표시 */}
-        {data.application && (
+        {data.application && (() => {
+          // 전체 상태 스텝 정의 (정상 흐름 + 특수 상태)
+          const NORMAL_STEPS = ['접수대기', '접수완료', '진행중', '진행완료', '집행완료'];
+          const SPECIAL_STATUS = ['보완', '반려'];
+          const STATUS_ICONS: Record<string,string> = {
+            '접수대기':'⏳','접수완료':'✅','진행중':'🔄','진행완료':'🏁','집행완료':'🎉','보완':'📋','반려':'❌'
+          };
+          const currentStatus = data.application.status;
+          const currentStepIdx = NORMAL_STEPS.indexOf(currentStatus); // -1이면 보완/반려
+          const isSpecial = SPECIAL_STATUS.includes(currentStatus);
+          const progressPct = isSpecial ? 0 : Math.round(((currentStepIdx + 1) / NORMAL_STEPS.length) * 100);
+
+          return (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 신청 진행 상황</h2>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {['접수대기', '접수완료', '진행중', '진행완료', '집행완료', '보완', '반려'].map((status, index) => (
-                <div
-                  key={status}
-                  className={`border-2 rounded-lg p-4 text-center transition-all ${
-                    data.application?.status === status 
-                      ? getStatusColor(status) + ' shadow-md scale-105' 
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
-                >
-                  <div className="text-sm font-medium">{status}</div>
-                  <div className="text-2xl font-bold mt-2">
-                    {data.application?.status === status ? (index + 1) : ''}
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold text-gray-800">📊 신청 진행 상황</h2>
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border-2 ${getStatusColor(currentStatus)}`}>
+                <span>{STATUS_ICONS[currentStatus]}</span>
+                <span>{currentStatus}</span>
+              </div>
             </div>
 
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            {/* 진행도 바 (보완/반려 아닐 때) */}
+            {!isSpecial && (
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs text-gray-500 font-medium">전체 진행률</span>
+                  <span className="text-sm font-bold text-gray-800">{progressPct}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                  <div
+                    className={`h-3 rounded-full transition-all duration-700 ${
+                      currentStatus === '집행완료' ? 'bg-purple-500' :
+                      currentStatus === '진행완료' ? 'bg-green-500' :
+                      currentStatus === '진행중' ? 'bg-yellow-500' :
+                      currentStatus === '접수완료' ? 'bg-blue-500' : 'bg-gray-400'
+                    }`}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                {/* 스텝 표시 */}
+                <div className="flex justify-between relative">
+                  {/* 연결선 */}
+                  <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200" style={{zIndex:0}} />
+                  <div
+                    className="absolute top-4 left-0 h-0.5 bg-blue-500 transition-all duration-700"
+                    style={{ width: currentStepIdx >= 0 ? `${(currentStepIdx / (NORMAL_STEPS.length - 1)) * 100}%` : '0%', zIndex:1 }}
+                  />
+                  {NORMAL_STEPS.map((step, idx) => {
+                    const isDone = idx < currentStepIdx;
+                    const isCurrent = idx === currentStepIdx;
+                    return (
+                      <div key={step} className="flex flex-col items-center" style={{zIndex:2}}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all ${
+                          isCurrent ? 'bg-blue-600 text-white border-blue-600 scale-110 shadow-md' :
+                          isDone ? 'bg-blue-100 text-blue-600 border-blue-400' :
+                          'bg-white text-gray-400 border-gray-300'
+                        }`}>
+                          {isDone ? '✓' : idx + 1}
+                        </div>
+                        <span className={`mt-1.5 text-xs font-medium text-center leading-tight ${
+                          isCurrent ? 'text-blue-700 font-bold' :
+                          isDone ? 'text-blue-500' : 'text-gray-400'
+                        }`} style={{maxWidth:'56px'}}>
+                          {step}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 보완/반려 특수 상태 표시 */}
+            {isSpecial && (
+              <div className={`mb-6 p-4 rounded-xl border-2 ${
+                currentStatus === '반려' ? 'bg-red-50 border-red-300' : 'bg-orange-50 border-orange-300'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{STATUS_ICONS[currentStatus]}</span>
+                  <div>
+                    <p className={`font-bold text-lg ${currentStatus === '반려' ? 'text-red-700' : 'text-orange-700'}`}>
+                      {currentStatus === '반려' ? '신청이 반려되었습니다' : '서류 보완이 필요합니다'}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      {currentStatus === '반려'
+                        ? 'AI 재심사를 요청하거나 담당자에게 문의해 주세요.'
+                        : '담당자 안내에 따라 필요 서류를 제출해 주세요.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 상태 통계 카드 (7개 전체) */}
+            <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-4">
+              {['접수대기','접수완료','진행중','진행완료','집행완료','보완','반려'].map((status, index) => {
+                const isActive = currentStatus === status;
+                const stepNum = NORMAL_STEPS.indexOf(status);
+                return (
+                  <div key={status} className={`rounded-xl p-3 text-center border-2 transition-all ${
+                    isActive ? `${getStatusColor(status)} shadow-lg scale-105` : 'border-gray-100 bg-gray-50'
+                  }`}>
+                    <div className={`text-2xl font-black ${isActive ? '' : 'text-gray-300'}`}>
+                      {stepNum >= 0 ? stepNum + 1 : (status === '보완' ? '!' : '✕')}
+                    </div>
+                    <div className={`text-xs font-semibold mt-0.5 ${isActive ? '' : 'text-gray-400'}`}>{STATUS_ICONS[status]}</div>
+                    <div className={`text-xs font-medium mt-0.5 leading-tight ${isActive ? '' : 'text-gray-400'}`}>{status}</div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm font-medium text-blue-900">
                 현재 상태: <span className="font-bold text-lg">{data.application.status}</span>
+                {!isSpecial && currentStepIdx >= 0 && (
+                  <span className="ml-2 text-blue-600 text-sm">({currentStepIdx + 1}/{NORMAL_STEPS.length} 단계)</span>
+                )}
               </p>
               {data.application.notes && (
                 <p className="text-sm text-blue-800 mt-2">
@@ -743,7 +837,7 @@ export default function ClientDashboard() {
                 </p>
               )}
               {data.application.policy_funds && data.application.policy_funds.length > 0 && (
-                <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <div className="mt-4 p-4 bg-white border-2 border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-bold text-blue-900">
                       💼 진행 중인 정책자금
@@ -759,6 +853,11 @@ export default function ClientDashboard() {
                       const status = fundStatus?.status || '접수대기';
                       const statusNotes = fundStatus?.notes || '';
                       const statusUpdatedAt = fundStatus?.updated_at || '';
+                      // 정책자금별 미니 스텝바
+                      const FUND_STEPS = ['접수대기','접수완료','진행중','진행완료','집행완료'];
+                      const FUND_ICONS: Record<string,string> = {'접수대기':'1','접수완료':'2','진행중':'3','진행완료':'4','집행완료':'5','보완':'!','반려':'✕'};
+                      const fundStepIdx = FUND_STEPS.indexOf(status);
+                      const isFundSpecial = status === '보완' || status === '반려';
                       return (
                         <div key={idx} className={`bg-white px-4 py-3 rounded-lg border-2 shadow-md hover:shadow-lg transition-shadow ${
                           status === '반려' ? 'border-red-300' :
@@ -770,34 +869,52 @@ export default function ClientDashboard() {
                           'border-gray-300'
                         }`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-bold text-blue-900">• {fund}</span>
-                            <div className="flex items-center gap-2">
-                              <span className={`text-xs px-2 py-1 rounded font-semibold border ${getStatusColor(status)}`}>
-                                {status === '접수대기' && '⏳ '}
-                                {status === '접수완료' && '✅ '}
-                                {status === '진행중' && '🔄 '}
-                                {status === '진행완료' && '🏁 '}
-                                {status === '집행완료' && '🎉 '}
-                                {status === '보완' && '📋 '}
-                                {status === '반려' && '❌ '}
-                                {status}
-                              </span>
-                            </div>
+                            <span className="font-bold text-gray-800 text-sm">• {fund}</span>
+                            <span className={`text-xs px-2 py-1 rounded-full font-bold border ${getStatusColor(status)}`}>
+                              {status === '접수대기' && '⏳ '}
+                              {status === '접수완료' && '✅ '}
+                              {status === '진행중' && '🔄 '}
+                              {status === '진행완료' && '🏁 '}
+                              {status === '집행완료' && '🎉 '}
+                              {status === '보완' && '📋 '}
+                              {status === '반려' && '❌ '}
+                              {status}
+                            </span>
                           </div>
+                          {/* 미니 스텝바 */}
+                          {!isFundSpecial && (
+                            <div className="flex items-center gap-1 mb-2">
+                              {FUND_STEPS.map((s, i) => (
+                                <div key={s} className="flex items-center gap-1 flex-1">
+                                  <div className={`flex-1 flex flex-col items-center`}>
+                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                                      i < fundStepIdx ? 'bg-blue-500 text-white border-blue-500' :
+                                      i === fundStepIdx ? 'bg-blue-600 text-white border-blue-600 scale-110' :
+                                      'bg-gray-100 text-gray-400 border-gray-300'
+                                    }`}>{i < fundStepIdx ? '✓' : i + 1}</div>
+                                    <span className={`text-xs mt-0.5 leading-tight text-center ${i === fundStepIdx ? 'text-blue-700 font-bold' : 'text-gray-400'}`} style={{fontSize:'9px'}}>{s}</span>
+                                  </div>
+                                  {i < FUND_STEPS.length - 1 && (
+                                    <div className={`h-0.5 w-3 flex-shrink-0 rounded ${i < fundStepIdx ? 'bg-blue-500' : 'bg-gray-200'}`} />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {statusNotes && (
-                            <div className="mb-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-                              <p className="text-xs text-gray-600">📝 담당자 메모: {statusNotes}</p>
+                            <div className="mb-2 px-2 py-1.5 bg-gray-50 rounded border border-gray-200">
+                              <p className="text-xs text-gray-600">📝 {statusNotes}</p>
                             </div>
                           )}
                           {statusUpdatedAt && (
-                            <p className="text-xs text-gray-400 mb-2">
-                              마지막 업데이트: {new Date(statusUpdatedAt).toLocaleDateString('ko-KR')}
+                            <p className="text-xs text-gray-400 mb-1">
+                              업데이트: {new Date(statusUpdatedAt).toLocaleDateString('ko-KR')}
                             </p>
                           )}
                           {amount > 0 && (
                             <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                               <span className="text-xs text-gray-600">신청금액</span>
-                              <span className="text-lg font-bold text-green-600">
+                              <span className="text-base font-bold text-green-600">
                                 {amount.toLocaleString()}원
                               </span>
                             </div>
@@ -840,7 +957,8 @@ export default function ClientDashboard() {
               </p>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* 클라이언트 정보 */}
         <div className="bg-white rounded-lg shadow-lg p-6">
