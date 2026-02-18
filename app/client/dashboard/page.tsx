@@ -1321,19 +1321,19 @@ export default function ClientDashboard() {
       {/* QR Code Modal */}
       {showQR && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+          <div className="bg-white rounded-lg p-5 max-w-xs w-full">
+            <h3 className="text-lg font-bold text-gray-800 mb-2 text-center">
               내 QR 코드
             </h3>
-            <p className="text-sm text-gray-600 mb-4 text-center">
+            <p className="text-xs text-gray-500 mb-3 text-center">
               관리자가 스캔하여 내 정보를 확인할 수 있습니다
             </p>
-            <div className="flex justify-center mb-6">
-              {qrCode && <img src={qrCode} alt="QR Code" className="w-64 h-64" />}
+            <div className="flex justify-center mb-4">
+              {qrCode && <img src={qrCode} alt="QR Code" className="w-44 h-44" />}
             </div>
             <button
               onClick={() => setShowQR(false)}
-              className="w-full py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+              className="w-full py-2 bg-black text-white rounded-lg font-semibold text-sm hover:bg-gray-700 transition-colors"
             >
               닫기
             </button>
@@ -1345,17 +1345,17 @@ export default function ClientDashboard() {
       {/* 📊 AI 분석 보고서 모달 */}
 {showReportModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto print:bg-white print:block print:p-0" id="report-modal-overlay">
-    <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl print:max-w-full print:shadow-none print:rounded-none report-page" id="report-modal-container">
+    <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[88vh] overflow-y-auto shadow-2xl print:max-w-full print:shadow-none print:rounded-none report-page" id="report-modal-container">
       
       {/* 헤더 - Only show on screen, not in print */}
-      <div className="sticky top-0 bg-gradient-to-r from-gray-800 to-gray-900 p-6 rounded-t-2xl z-10 print:hidden" id="report-header">
+      <div className="sticky top-0 bg-gradient-to-r from-gray-800 to-gray-900 p-4 rounded-t-2xl z-10 print:hidden" id="report-header">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <div>
-              <h2 className="text-2xl font-bold text-white">AI 종합 분석 보고서</h2>
+              <h2 className="text-lg font-bold text-white">AI 종합 분석 보고서</h2>
               <p className="text-sm text-gray-300 mt-1">
                 {data && data.client && `${data?.client.name}님의 상세 신용 및 정책자금 분석`}
               </p>
@@ -1952,8 +1952,8 @@ export default function ClientDashboard() {
       {/* 🔄 AI 재심사 결과 모달 */}
       {showReviewResultModal && reviewResultData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+          <div className="bg-white rounded-lg p-5 max-w-2xl w-full max-h-[88vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">
               💰 최대 대출 한도 조회
             </h3>
             
@@ -2128,13 +2128,13 @@ export default function ClientDashboard() {
       {/* 재무제표 AI 분석 입력 모달 */}
       {showFinancialAnalysis && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gray-800 text-white p-6 rounded-t-lg z-10">
-              <h3 className="text-2xl font-bold">📈 재무제표 AI 분석</h3>
-              <p className="text-gray-100 mt-1">최근 3개년 재무제표를 입력하시면 AI가 정밀 분석하여 최적의 대출 한도를 산출해드립니다.</p>
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[88vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gray-800 text-white p-4 rounded-t-lg z-10">
+              <h3 className="text-lg font-bold">📈 재무제표 AI 분석</h3>
+              <p className="text-gray-300 text-xs mt-0.5">3개년 재무제표 입력 → AI 정밀 분석</p>
             </div>
 
-            <div className="p-6">
+            <div className="p-4">
               {loadingFinancialAnalysis ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mb-4"></div>
@@ -2144,14 +2144,11 @@ export default function ClientDashboard() {
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {financialData.map((yearData, index) => (
-                      <div key={index} className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
-                        <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {yearData.year}년
+                      <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                        <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-1">
+                          📅 {yearData.year}년
                         </h4>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">매출액 (원)</label>
                             <input
@@ -2217,16 +2214,16 @@ export default function ClientDashboard() {
                     ))}
                   </div>
 
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>💡 Tip:</strong> 재무제표의 부채, 매출, 순이익 등을 정확히 입력하시면 더욱 정밀한 AI 진단 결과를 받으실 수 있습니다.
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-800">
+                      <strong>💡</strong> 정확한 수치 입력 시 더 정밀한 AI 진단을 받으실 수 있습니다.
                     </p>
                   </div>
 
-                  <div className="flex gap-3 mt-6">
+                  <div className="flex gap-3 mt-4">
                     <button
                       onClick={handleFinancialAnalysis}
-                      className="flex-1 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                      className="flex-1 py-2.5 bg-black text-white rounded-lg font-semibold text-sm hover:bg-gray-700 transition-colors"
                     >
                       🤖 AI 분석 시작
                     </button>
@@ -2239,7 +2236,7 @@ export default function ClientDashboard() {
                           { year: '2021', revenue: 0, operatingProfit: 0, netProfit: 0, totalAssets: 0, totalLiabilities: 0, equity: 0 },
                         ]);
                       }}
-                      className="px-6 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-colors"
+                      className="px-5 py-2.5 bg-gray-500 text-white rounded-lg font-semibold text-sm hover:bg-gray-600 transition-colors"
                     >
                       취소
                     </button>
@@ -2254,20 +2251,17 @@ export default function ClientDashboard() {
       {/* 재무제표 AI 분석 결과 모달 */}
       {showFinancialResult && financialResult && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gray-800 text-white p-6 rounded-t-lg z-10">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                재무제표 AI 분석 결과
+          <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[88vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gray-800 text-white p-4 rounded-t-lg z-10">
+              <h3 className="text-lg font-bold flex items-center gap-2">
+                ✅ 재무제표 AI 분석 결과
               </h3>
-              <p className="text-gray-100 mt-1">3개년 재무제표 기반 정밀 분석 완료</p>
+              <p className="text-gray-300 text-xs mt-0.5">3개년 재무제표 기반 정밀 분석 완료</p>
             </div>
 
-            <div className="p-6">
+            <div className="p-4">
               {/* 핵심 지표 요약 */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border-2 border-blue-200">
                   <p className="text-sm text-blue-600 font-medium mb-1">SOHO 등급</p>
                   <p className="text-3xl font-bold text-blue-800">{financialResult.sohoGrade}</p>
@@ -2368,7 +2362,7 @@ export default function ClientDashboard() {
       {/* ===== AI 정책자금 평가 모달 ===== */}
       {showFundEval && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[88vh] overflow-y-auto">
             {/* 헤더 */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 rounded-t-2xl">
               <div className="flex items-center gap-3">
@@ -2538,7 +2532,7 @@ export default function ClientDashboard() {
       {/* ===== AI 기업집중분석 모달 ===== */}
       {showCompanyAnalysis && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[88vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
