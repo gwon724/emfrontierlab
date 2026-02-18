@@ -261,6 +261,12 @@ export default function ClientDashboard() {
   // AI 진단 시작
   const handleStartDiagnosis = async () => {
     console.log('🔵 AI 진단 시작 버튼 클릭됨');
+    
+    if (!confirm('AI 진단을 시작하시겠습니까? 즉시 진단 결과를 확인하실 수 있습니다.')) {
+      return;
+    }
+
+    setLoadingReview(true);
     const token = localStorage.getItem('clientToken');
     console.log('🔵 토큰:', token ? '존재함' : '없음');
     
@@ -280,27 +286,15 @@ export default function ClientDashboard() {
         const result = await res.json();
         console.log('🔵 AI 진단 결과:', result);
         
-        // recommended_funds가 이미 객체 배열로 들어옴 (name, category, max_amount, interest_rate, requirements)
-        setAvailableFunds(result.recommended_funds || []);
-        
-        // fundDetails는 recommended_funds를 그대로 사용
-        const detailsMap: {[key: string]: any} = {};
-        if (result.recommended_funds && Array.isArray(result.recommended_funds)) {
-          result.recommended_funds.forEach((fund: any) => {
-            detailsMap[fund.name] = {
-              category: fund.category,
-              max_amount: fund.max_amount,
-              interest_rate: fund.interest_rate,
-              requirements: fund.requirements,
-              description: `최대 ${(fund.max_amount / 100000000).toFixed(1)}억원까지 지원 가능합니다.`
-            };
-          });
-        }
-        setFundDetails(detailsMap);
-        
-        setDiagnosisStep('select');
-        setShowDiagnosis(true);
-        console.log('🔵 모달 표시됨, 추천 자금:', result.recommended_funds);
+        // 재심사와 동일하게 모달에 결과 표시
+        setReviewResultData({
+          sohoGrade: result.soho_grade,
+          maxLoanLimit: result.max_loan_limit,
+          recommendedFunds: result.recommended_funds,
+          details: result.details
+        });
+        setShowReviewResultModal(true);
+        fetchData(); // 데이터 새로고침
       } else {
         const errorData = await res.json();
         console.error('🔴 AI 진단 API 오류:', errorData);
@@ -309,6 +303,8 @@ export default function ClientDashboard() {
     } catch (error) {
       console.error('🔴 Error starting diagnosis:', error);
       alert('AI 진단 중 오류가 발생했습니다.');
+    } finally {
+      setLoadingReview(false);
     }
   };
 
