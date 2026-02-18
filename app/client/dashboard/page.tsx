@@ -48,6 +48,22 @@ export default function ClientDashboard() {
   const [financialResult, setFinancialResult] = useState<any>(null);
   const [loadingFinancialAnalysis, setLoadingFinancialAnalysis] = useState(false);
 
+  // AI 정책자금 평가 관련 state
+  const [showFundEval, setShowFundEval] = useState(false);
+  const [fundEvalData, setFundEvalData] = useState<any>(null);
+  const [loadingFundEval, setLoadingFundEval] = useState(false);
+  const [fundEvalFilter, setFundEvalFilter] = useState<'all' | 'eligible' | 'ineligible'>('all');
+
+  // AI 기업집중분석 관련 state
+  const [showCompanyAnalysis, setShowCompanyAnalysis] = useState(false);
+  const [companyAnalysisData, setCompanyAnalysisData] = useState<any>(null);
+  const [loadingCompanyAnalysis, setLoadingCompanyAnalysis] = useState(false);
+
+  // 계정 삭제 관련 state
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
+
   // 자동 로그아웃 타이머 (10분)
   const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10분 = 600,000ms
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
@@ -423,6 +439,69 @@ export default function ClientDashboard() {
     }
   };
 
+  // AI 정책자금 평가 실행
+  const handleOpenFundEval = async () => {
+    setShowFundEval(true);
+    setFundEvalData(null);
+    setLoadingFundEval(true);
+    setFundEvalFilter('all');
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/evaluate-funds', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+      const d = await res.json();
+      if (res.ok) setFundEvalData(d);
+      else alert(d.error || '분석 실패');
+    } catch { alert('오류가 발생했습니다.'); }
+    finally { setLoadingFundEval(false); }
+  };
+
+  // AI 기업집중분석 실행
+  const handleOpenCompanyAnalysis = async () => {
+    setShowCompanyAnalysis(true);
+    setCompanyAnalysisData(null);
+    setLoadingCompanyAnalysis(true);
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/company-analysis', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+      const d = await res.json();
+      if (res.ok) setCompanyAnalysisData(d);
+      else alert(d.error || '분석 실패');
+    } catch { alert('오류가 발생했습니다.'); }
+    finally { setLoadingCompanyAnalysis(false); }
+  };
+
+  // 계정 삭제
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== '탈퇴합니다') {
+      alert('확인 문구를 정확히 입력해주세요.');
+      return;
+    }
+    setDeletingAccount(true);
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/delete-account', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
+      const d = await res.json();
+      if (res.ok) {
+        alert('계정이 삭제되었습니다. 이용해주셔서 감사합니다.');
+        localStorage.removeItem('clientToken');
+        localStorage.removeItem('clientData');
+        router.push('/client/login');
+      } else {
+        alert(d.error || '계정 삭제에 실패했습니다.');
+      }
+    } catch { alert('오류가 발생했습니다.'); }
+    finally { setDeletingAccount(false); }
+  };
+
   // 재심사 요청
   const handleRequestReview = async () => {
     if (!confirm('AI 재심사를 진행하시겠습니까? 즉시 새로운 진단 결과를 확인하실 수 있습니다.')) {
@@ -541,7 +620,7 @@ export default function ClientDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <><div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <div className="bg-gray-800 text-white py-4 px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -582,6 +661,18 @@ export default function ClientDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               📈 재무제표 AI 분석
+            </button>
+            <button
+              onClick={handleOpenFundEval}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+            >
+              🏦 AI 정책자금
+            </button>
+            <button
+              onClick={handleOpenCompanyAnalysis}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center gap-2"
+            >
+              📊 AI 기업분석
             </button>
             {data.application && (
               <button
@@ -870,6 +961,17 @@ export default function ClientDashboard() {
                 {data.client?.has_technology ? '✅ 예' : '❌ 아니오'}
               </p>
             </div>
+          </div>
+
+          {/* 계정 관리 */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <button
+              onClick={() => setShowDeleteAccount(true)}
+              className="px-4 py-2 text-sm text-red-500 border border-red-200 rounded-lg hover:bg-red-50 hover:text-red-700 transition-colors font-medium"
+            >
+              🗑️ 계정 삭제
+            </button>
+            <p className="text-xs text-gray-400 mt-1">계정 삭제 시 모든 데이터가 영구 삭제됩니다.</p>
           </div>
         </div>
       </div>
@@ -2127,5 +2229,366 @@ export default function ClientDashboard() {
         Copyright © 2026 EMFRONTIER Operating Company, LLC. All Rights Reserved
       </footer>
     </div>
+
+      {/* ===== AI 정책자금 평가 모달 ===== */}
+      {showFundEval && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+            {/* 헤더 */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <span className="text-xl">🏦</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">AI 정책자금 평가</h3>
+                  <p className="text-xs text-gray-500">매출 · 기대출 · 업력 · 신용점수 조건별 분석</p>
+                </div>
+              </div>
+              <button onClick={() => setShowFundEval(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              {loadingFundEval ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-gray-600 font-medium">AI가 정책자금 조건을 분석 중...</p>
+                  <p className="text-sm text-gray-400 mt-2">매출 · 기대출 · 업력 · 신용점수를 하나씩 검토합니다</p>
+                </div>
+              ) : fundEvalData ? (
+                <>
+                  {/* 요약 카드 */}
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
+                      <p className="text-xs text-blue-600 font-semibold mb-1">SOHO 등급</p>
+                      <p className="text-3xl font-black text-blue-700">{fundEvalData.sohoGrade}</p>
+                      <p className="text-xs text-blue-500 mt-1">등급</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
+                      <p className="text-xs text-green-600 font-semibold mb-1">최대 한도</p>
+                      <p className="text-lg font-black text-green-700">{(fundEvalData.maxLoanLimit / 100000000).toFixed(1)}억</p>
+                      <p className="text-xs text-green-500 mt-1">{fundEvalData.maxLoanLimit?.toLocaleString()}원</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center border border-purple-200">
+                      <p className="text-xs text-purple-600 font-semibold mb-1">조건 충족</p>
+                      <p className="text-3xl font-black text-purple-700">{fundEvalData.funds?.filter((f: any) => f.eligible).length}</p>
+                      <p className="text-xs text-purple-500 mt-1">/ {fundEvalData.funds?.length}개 자금</p>
+                    </div>
+                  </div>
+
+                  {/* 필터 탭 */}
+                  <div className="flex gap-2 mb-4">
+                    {(['all', 'eligible', 'ineligible'] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setFundEvalFilter(f)}
+                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                          fundEvalFilter === f ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {f === 'all' ? `전체 (${fundEvalData.funds?.length})` :
+                         f === 'eligible' ? `✅ 충족 (${fundEvalData.funds?.filter((x: any) => x.eligible).length})` :
+                         `❌ 미충족 (${fundEvalData.funds?.filter((x: any) => !x.eligible).length})`}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* 자금별 카드 - 노션 스타일 */}
+                  <div className="space-y-3">
+                    {fundEvalData.funds
+                      ?.filter((fund: any) =>
+                        fundEvalFilter === 'all' ? true :
+                        fundEvalFilter === 'eligible' ? fund.eligible :
+                        !fund.eligible
+                      )
+                      .map((fund: any, idx: number) => (
+                        <div key={idx} className={`border-2 rounded-xl overflow-hidden ${fund.eligible ? 'border-green-300 shadow-sm' : 'border-gray-200'}`}>
+                          {/* 자금 헤더 */}
+                          <div className={`flex items-center justify-between px-4 py-3 ${fund.eligible ? 'bg-green-50' : 'bg-gray-50'}`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {fund.category?.includes('중진공') ? '🏢' :
+                                 fund.category?.includes('소진공') ? '🏪' :
+                                 fund.category?.includes('신용보증') ? '🛡️' :
+                                 fund.category?.includes('기술보증') ? '🔬' : '💼'}
+                              </span>
+                              <div>
+                                <p className="font-bold text-gray-900 text-sm">{fund.name}</p>
+                                <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded border border-gray-200">{fund.category}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-right">
+                              <div>
+                                <p className="text-xs text-gray-500">최대 한도</p>
+                                <p className={`font-bold text-sm ${fund.eligible ? 'text-green-700' : 'text-gray-500'}`}>
+                                  {fund.max_amount >= 100000000
+                                    ? (fund.max_amount / 100000000).toFixed(1) + '억'
+                                    : (fund.max_amount / 10000000).toFixed(0) + '천만'}원
+                                </p>
+                              </div>
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                fund.eligible ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                              }`}>
+                                {fund.passCount}/{fund.totalCount}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 조건 체크 목록 - 노션 테이블 스타일 */}
+                          <div className="px-4 py-3 bg-white">
+                            <div className="divide-y divide-gray-100">
+                              {fund.conditions?.map((cond: any, ci: number) => (
+                                <div key={ci} className="flex items-center justify-between py-2.5">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                                      cond.passed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
+                                    }`}>
+                                      {cond.passed ? '✓' : '✗'}
+                                    </span>
+                                    <span className="text-sm text-gray-700 font-medium">{cond.label}</span>
+                                  </div>
+                                  <div className="flex items-center gap-6 text-right">
+                                    <div>
+                                      <p className="text-xs text-gray-400">기준</p>
+                                      <p className="text-xs font-semibold text-gray-600">{cond.required}</p>
+                                    </div>
+                                    <div className="w-20">
+                                      <p className="text-xs text-gray-400">내 실제값</p>
+                                      <p className={`text-xs font-bold ${cond.passed ? 'text-green-600' : 'text-red-500'}`}>{cond.actual}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            {fund.eligible && (
+                              <div className="mt-2 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
+                                <p className="text-xs text-green-700 font-semibold">✅ 모든 조건 충족 — 신청 가능</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-center text-gray-400 py-8">데이터를 불러오지 못했습니다.</p>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
+              <button
+                onClick={() => setShowFundEval(false)}
+                className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== AI 기업집중분석 모달 ===== */}
+      {showCompanyAnalysis && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10 rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-xl">📊</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">AI 기업집중분석</h3>
+                  <p className="text-xs text-gray-500">매출 · 기대출 · 직원수 · 업력 종합 분석</p>
+                </div>
+              </div>
+              <button onClick={() => setShowCompanyAnalysis(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              {loadingCompanyAnalysis ? (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-gray-600 font-medium">기업 데이터를 종합 분석 중...</p>
+                  <p className="text-sm text-gray-400 mt-2">매출 · 기대출 · 직원수 · 업력을 평가합니다</p>
+                </div>
+              ) : companyAnalysisData?.analysis ? (
+                (() => {
+                  const a = companyAnalysisData.analysis;
+                  const gradeColor = (g: string) => {
+                    if (g === 'S') return 'text-purple-700 bg-purple-100 border-purple-200';
+                    if (g === 'A') return 'text-green-700 bg-green-100 border-green-200';
+                    if (g === 'B') return 'text-blue-700 bg-blue-100 border-blue-200';
+                    if (g === 'C') return 'text-yellow-700 bg-yellow-100 border-yellow-200';
+                    return 'text-red-700 bg-red-100 border-red-200';
+                  };
+                  return (
+                    <>
+                      {/* 종합 등급 배너 */}
+                      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white text-center mb-6 shadow-lg">
+                        <p className="text-sm font-medium opacity-80 mb-1">종합 기업 등급</p>
+                        <p className="text-6xl font-black mb-2">{a.overallGrade}</p>
+                        <p className="text-2xl font-bold opacity-90">{a.overallScore}점 / 100점</p>
+                        <p className="text-sm opacity-75 mt-3 leading-relaxed">{a.summary}</p>
+                      </div>
+
+                      {/* 4개 항목별 분석 */}
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        {[
+                          { label: '💰 매출 분석', data: a.revenueLevel },
+                          { label: '📉 부채 분석', data: a.debtLevel },
+                          { label: '👥 직원수 분석', data: a.employeeLevel },
+                          { label: '📅 업력 분석', data: a.businessAgeLevel },
+                        ].map(({ label, data }) => (
+                          <div key={label} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-sm font-bold text-gray-700">{label}</span>
+                              <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${gradeColor(data.grade)}`}>
+                                {data.grade}등급
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-2.5 mb-2">
+                              <div
+                                className="h-2.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+                                style={{ width: `${data.score}%` }}
+                              />
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <p className="text-xs text-gray-500 flex-1">{data.comment}</p>
+                              <span className="text-xs font-bold text-gray-700 ml-2">{data.score}점</span>
+                            </div>
+                            {data.ratio !== undefined && data.ratio > 0 && (
+                              <p className="text-xs text-orange-500 mt-1 font-medium">부채비율: {data.ratio.toFixed(0)}%</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* 강점 */}
+                      {a.strengths?.length > 0 && (
+                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                          <p className="text-sm font-bold text-green-800 mb-2 flex items-center gap-1">✅ 강점</p>
+                          <ul className="space-y-1.5">
+                            {a.strengths.map((s: string, i: number) => (
+                              <li key={i} className="text-sm text-green-700 flex items-start gap-2">
+                                <span className="text-green-500 mt-0.5 flex-shrink-0 font-bold">•</span>{s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 약점 */}
+                      {a.weaknesses?.length > 0 && (
+                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                          <p className="text-sm font-bold text-red-800 mb-2 flex items-center gap-1">⚠️ 개선 필요</p>
+                          <ul className="space-y-1.5">
+                            {a.weaknesses.map((w: string, i: number) => (
+                              <li key={i} className="text-sm text-red-700 flex items-start gap-2">
+                                <span className="text-red-500 mt-0.5 flex-shrink-0 font-bold">•</span>{w}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 제안 */}
+                      {a.suggestions?.length > 0 && (
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                          <p className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1">💡 전략 제안</p>
+                          <ul className="space-y-1.5">
+                            {a.suggestions.map((s: string, i: number) => (
+                              <li key={i} className="text-sm text-blue-700 flex items-start gap-2">
+                                <span className="text-blue-600 mt-0.5 flex-shrink-0 font-bold">{i + 1}.</span>{s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()
+              ) : (
+                <p className="text-center text-gray-400 py-8">데이터를 불러오지 못했습니다.</p>
+              )}
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
+              <button
+                onClick={() => setShowCompanyAnalysis(false)}
+                className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== 계정 삭제 모달 ===== */}
+      {showDeleteAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="bg-red-600 px-6 py-5 rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <span className="text-xl">🗑️</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">계정 삭제</h3>
+                  <p className="text-red-100 text-sm">삭제 후 복구할 수 없습니다</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-5">
+                <p className="text-sm text-red-800 font-semibold mb-2">⚠️ 주의사항</p>
+                <ul className="text-sm text-red-700 space-y-1">
+                  <li>• 모든 신청 내역이 영구 삭제됩니다</li>
+                  <li>• AI 진단 결과가 삭제됩니다</li>
+                  <li>• 이 작업은 되돌릴 수 없습니다</li>
+                </ul>
+              </div>
+              <p className="text-sm text-gray-700 mb-3">
+                계정을 삭제하려면 아래에 <strong className="text-red-600">탈퇴합니다</strong>를 입력하세요:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="탈퇴합니다"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none mb-4"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowDeleteAccount(false); setDeleteConfirmText(''); }}
+                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deletingAccount || deleteConfirmText !== '탈퇴합니다'}
+                  className={`flex-1 py-3 rounded-xl font-bold transition-all ${
+                    deleteConfirmText === '탈퇴합니다' && !deletingAccount
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {deletingAccount ? '삭제 중...' : '계정 삭제'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

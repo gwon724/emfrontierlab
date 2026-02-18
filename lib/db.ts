@@ -127,6 +127,21 @@ export function initDatabase() {
     )
   `);
 
+  // 정책자금별 개별 진행상태 테이블
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS fund_statuses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL,
+      fund_name TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT '접수대기',
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (client_id) REFERENCES clients(id),
+      UNIQUE(client_id, fund_name)
+    )
+  `);
+
   // AI 진단 결과 테이블
   database.exec(`
     CREATE TABLE IF NOT EXISTS ai_diagnosis (
