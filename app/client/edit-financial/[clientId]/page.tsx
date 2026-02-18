@@ -67,7 +67,8 @@ export default function EditFinancialPage() {
       });
 
       if (res.ok) {
-        alert('재무 정보가 성공적으로 업데이트되었습니다!');
+        const result = await res.json();
+        alert(`재무 정보가 성공적으로 업데이트되었습니다!\n\n새로운 SOHO 등급: ${result.soho_grade || 'N/A'}\n최대 한도: ${(result.score || 0).toLocaleString()}원`);
         router.push('/client/dashboard');
       } else {
         const data = await res.json();
