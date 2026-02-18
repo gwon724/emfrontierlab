@@ -31,6 +31,21 @@ export async function GET(request: NextRequest) {
     // AI 진단 결과 조회
     const diagnosis: any = db.prepare('SELECT * FROM ai_diagnosis WHERE client_id = ? ORDER BY created_at DESC LIMIT 1').get(client.id);
 
+    // 정책자금별 개별 진행상태 조회
+    let fundStatusMap: {[key: string]: {status: string; notes: string; updated_at: string}} = {};
+    try {
+      const fundStatuses: any[] = db.prepare('SELECT * FROM fund_statuses WHERE client_id = ?').all(client.id) as any[];
+      fundStatuses.forEach((fs: any) => {
+        fundStatusMap[fs.fund_name] = {
+          status: fs.status,
+          notes: fs.notes || '',
+          updated_at: fs.updated_at,
+        };
+      });
+    } catch (e) {
+      // fund_statuses 테이블이 없으면 무시
+    }
+
     return NextResponse.json({
       client: {
         id: client.id,
@@ -55,6 +70,7 @@ export async function GET(request: NextRequest) {
         status: application.status,
         policy_funds: application.policy_funds ? JSON.parse(application.policy_funds) : [],
         fund_amounts: application.fund_amounts ? JSON.parse(application.fund_amounts) : {},
+        fund_statuses: fundStatusMap,
         notes: application.notes,
         updated_at: application.updated_at,
       } : null,

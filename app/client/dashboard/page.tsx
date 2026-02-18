@@ -755,25 +755,47 @@ export default function ClientDashboard() {
                   <div className="grid grid-cols-1 gap-3">
                     {data.application.policy_funds.map((fund: string, idx: number) => {
                       const amount = data.application.fund_amounts?.[fund] || 0;
+                      const fundStatus = data.application.fund_statuses?.[fund];
+                      const status = fundStatus?.status || '접수대기';
+                      const statusNotes = fundStatus?.notes || '';
+                      const statusUpdatedAt = fundStatus?.updated_at || '';
                       return (
-                        <div key={idx} className="bg-white px-4 py-3 rounded-lg border-2 border-blue-300 shadow-md hover:shadow-lg transition-shadow">
+                        <div key={idx} className={`bg-white px-4 py-3 rounded-lg border-2 shadow-md hover:shadow-lg transition-shadow ${
+                          status === '반려' ? 'border-red-300' :
+                          status === '보완' ? 'border-orange-300' :
+                          status === '집행완료' ? 'border-purple-300' :
+                          status === '진행완료' ? 'border-green-300' :
+                          status === '진행중' ? 'border-yellow-300' :
+                          status === '접수완료' ? 'border-blue-300' :
+                          'border-gray-300'
+                        }`}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-blue-900">• {fund}</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-semibold">진행중</span>
-                              <button
-                                onClick={() => handleDeleteFund(fund)}
-                                className="p-1 hover:bg-red-100 rounded-lg transition-colors group"
-                                title="이 정책자금 삭제"
-                              >
-                                <svg className="w-5 h-5 text-gray-400 group-hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                              <span className={`text-xs px-2 py-1 rounded font-semibold border ${getStatusColor(status)}`}>
+                                {status === '접수대기' && '⏳ '}
+                                {status === '접수완료' && '✅ '}
+                                {status === '진행중' && '🔄 '}
+                                {status === '진행완료' && '🏁 '}
+                                {status === '집행완료' && '🎉 '}
+                                {status === '보완' && '📋 '}
+                                {status === '반려' && '❌ '}
+                                {status}
+                              </span>
                             </div>
                           </div>
+                          {statusNotes && (
+                            <div className="mb-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                              <p className="text-xs text-gray-600">📝 담당자 메모: {statusNotes}</p>
+                            </div>
+                          )}
+                          {statusUpdatedAt && (
+                            <p className="text-xs text-gray-400 mb-2">
+                              마지막 업데이트: {new Date(statusUpdatedAt).toLocaleDateString('ko-KR')}
+                            </p>
+                          )}
                           {amount > 0 && (
-                            <div className="flex items-center justify-between pt-2 border-t border-blue-100">
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                               <span className="text-xs text-gray-600">신청금액</span>
                               <span className="text-lg font-bold text-green-600">
                                 {amount.toLocaleString()}원
