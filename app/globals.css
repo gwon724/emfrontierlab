@@ -16,23 +16,9 @@ body {
   box-sizing: border-box;
 }
 
-/* 워터마크 스타일 - 화면 표시용 */
+/* 워터마크 제거됨 */
 .watermark {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.5;
-  pointer-events: none;
-  z-index: 1000;
-  width: 600px;
-  height: 600px;
-}
-
-.watermark img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  display: none !important;
 }
 
 /* Print styles for AI Report - A4 Optimized */
@@ -302,23 +288,8 @@ body {
     visibility: visible !important;
   }
   
-  /* 워터마크 스타일 - 프린트 시에도 표시 */
+  /* 워터마크 제거됨 */
   .watermark {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    opacity: 0.5 !important;
-    pointer-events: none !important;
-    z-index: 1000 !important;
-    width: 600pt !important;
-    height: 600pt !important;
-    visibility: visible !important;
-  }
-  
-  .watermark img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
+    display: none !important;
   }
 }
