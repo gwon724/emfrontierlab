@@ -2380,12 +2380,21 @@ export default function ClientDashboard() {
             </div>
 
             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
-              <button
-                onClick={() => setShowFundEval(false)}
-                className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
-              >
-                닫기
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleOpenFundEval}
+                  disabled={loadingFundEval}
+                  className={`flex-1 py-3 rounded-xl font-bold transition-colors ${loadingFundEval ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                >
+                  {loadingFundEval ? '⏳ 분석 중...' : '🔄 재분석'}
+                </button>
+                <button
+                  onClick={() => setShowFundEval(false)}
+                  className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
+                >
+                  닫기
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2521,12 +2530,21 @@ export default function ClientDashboard() {
             </div>
 
             <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
-              <button
-                onClick={() => setShowCompanyAnalysis(false)}
-                className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
-              >
-                닫기
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleOpenCompanyAnalysis}
+                  disabled={loadingCompanyAnalysis}
+                  className={`flex-1 py-3 rounded-xl font-bold transition-colors ${loadingCompanyAnalysis ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
+                >
+                  {loadingCompanyAnalysis ? '⏳ 분석 중...' : '🔄 재분석'}
+                </button>
+                <button
+                  onClick={() => setShowCompanyAnalysis(false)}
+                  className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
+                >
+                  닫기
+                </button>
+              </div>
             </div>
           </div>
         </div>
