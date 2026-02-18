@@ -14,6 +14,8 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
   useEffect(() => {
     if (client?.id) {
       const shareUrl = `${window.location.origin}/app/share/${client.id}`;
+      console.log('🔵 Generating QR code for URL:', shareUrl);
+      console.log('🔵 Client data:', client);
       
       // 화면용 QR 코드 생성
       if (qrCanvasRef.current) {
@@ -24,7 +26,13 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
             dark: '#000000',
             light: '#ffffff',
           },
+        }).then(() => {
+          console.log('✅ Screen QR code generated successfully');
+        }).catch((error) => {
+          console.error('❌ Screen QR code generation failed:', error);
         });
+      } else {
+        console.warn('⚠️ qrCanvasRef.current is null');
       }
       
       // 프린트용 QR 코드 생성
@@ -36,8 +44,16 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
             dark: '#000000',
             light: '#ffffff',
           },
+        }).then(() => {
+          console.log('✅ Print QR code generated successfully');
+        }).catch((error) => {
+          console.error('❌ Print QR code generation failed:', error);
         });
+      } else {
+        console.warn('⚠️ qrPrintCanvasRef.current is null');
       }
+    } else {
+      console.error('❌ Client or client.id is missing:', client);
     }
   }, [client]);
 
