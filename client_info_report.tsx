@@ -49,11 +49,11 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          opacity: 0.15;
+          opacity: 0.5;
           pointer-events: none;
           z-index: 0;
-          width: 500px;
-          height: 500px;
+          width: 600px;
+          height: 600px;
         }
         
         .watermark img {
@@ -111,9 +111,9 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
           /* 프린트 시 워터마크 */
           .watermark {
             position: fixed;
-            opacity: 0.15;
-            width: 500px;
-            height: 500px;
+            opacity: 0.5;
+            width: 600px;
+            height: 600px;
           }
         }
         
