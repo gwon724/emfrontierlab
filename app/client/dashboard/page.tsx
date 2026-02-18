@@ -32,6 +32,11 @@ export default function ClientDashboard() {
   // 고객정보 보고서 관련 state
   const [showClientInfoReport, setShowClientInfoReport] = useState(false);
 
+  // AI 재심사 결과 모달 관련 state
+  const [showReviewResultModal, setShowReviewResultModal] = useState(false);
+  const [reviewResultData, setReviewResultData] = useState<any>(null);
+  const [loadingReview, setLoadingReview] = useState(false);
+
   // 자동 로그아웃 타이머 (10분)
   const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10분 = 600,000ms
   const [inactivityTimer, setInactivityTimer] = useState<NodeJS.Timeout | null>(null);
@@ -383,6 +388,7 @@ export default function ClientDashboard() {
       return;
     }
 
+    setLoadingReview(true);
     const token = localStorage.getItem('clientToken');
     try {
       const res = await fetch('/api/client/request-review', {
@@ -396,7 +402,9 @@ export default function ClientDashboard() {
       const result = await res.json();
       
       if (res.ok) {
-        alert(`✅ ${result.message}\n\n📊 SOHO 등급: ${result.diagnosis.sohoGrade}\n💰 최대 한도: ${result.diagnosis.maxLoanLimit.toLocaleString()}원\n🎯 추천 정책자금: ${result.diagnosis.recommendedFunds.length}개`);
+        // 모달에 결과 표시
+        setReviewResultData(result.diagnosis);
+        setShowReviewResultModal(true);
         fetchData(); // 데이터 새로고침
       } else {
         alert(result.error || '재심사 요청에 실패했습니다.');
@@ -404,6 +412,8 @@ export default function ClientDashboard() {
     } catch (error) {
       console.error('Error requesting review:', error);
       alert('재심사 요청 중 오류가 발생했습니다.');
+    } finally {
+      setLoadingReview(false);
     }
   };
 
@@ -1545,6 +1555,116 @@ export default function ClientDashboard() {
           client={data}
           onClose={() => setShowClientInfoReport(false)}
         />
+      )}
+
+      {/* 🔄 AI 재심사 결과 모달 */}
+      {showReviewResultModal && reviewResultData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+              💰 최대 대출 한도 조회
+            </h3>
+            
+            {loadingReview ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
+                <div className="text-lg text-gray-600">한도 계산 중...</div>
+              </div>
+            ) : (
+              <div>
+                {/* 기본 정보 */}
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-lg mb-3">기본 정보</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-600">고객명:</span>
+                      <span className="ml-2 font-medium">{data?.client?.name || data?.name || 'test'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">SOHO 등급:</span>
+                      <span className="ml-2 font-bold text-blue-600">{reviewResultData.sohoGrade}등급</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">신용점수(NICE):</span>
+                      <span className="ml-2 font-medium">{data?.client?.nice_score || data?.nice_score || 0}점</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">연매출:</span>
+                      <span className="ml-2 font-medium">{(data?.client?.annual_revenue || data?.annual_revenue || 0).toLocaleString()}원</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">총부채:</span>
+                      <span className="ml-2 font-medium">{(data?.client?.total_debt || data?.client?.debt || data?.debt || 0).toLocaleString()}원</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">기술력:</span>
+                      <span className="ml-2 font-medium">{(data?.client?.has_technology || data?.has_technology) ? '보유' : '미보유'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 전체 최대 한도 */}
+                <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border-2 border-green-300">
+                  <h4 className="font-bold text-xl mb-2 text-green-800">전체 최대 대출 가능 한도</h4>
+                  <div className="text-3xl font-bold text-green-600">
+                    {(reviewResultData.maxLoanLimit || 0).toLocaleString()}원
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    신용점수, 매출, 부채비율, 기술력을 종합 분석한 결과입니다.
+                  </p>
+                </div>
+
+                {/* 정책자금별 세부 한도 */}
+                <div className="mb-6">
+                  <h4 className="font-semibold text-lg mb-3">정책자금별 세부 한도</h4>
+                  <div className="space-y-3">
+                    {reviewResultData.recommendedFunds && reviewResultData.recommendedFunds.length > 0 ? (
+                      reviewResultData.recommendedFunds.map((fund: any, index: number) => (
+                        <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h5 className="font-semibold text-gray-800">{fund.name || fund}</h5>
+                              <p className="text-xs text-gray-500">{fund.category || '중진공'}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-blue-600">
+                                최대 {(fund.max_amount || 80000000).toLocaleString()}원
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                금리 {fund.interest_rate || '2.5%'} | 60개월
+                              </div>
+                            </div>
+                          </div>
+                          {fund.requirements && (
+                            <p className="text-xs text-gray-600 mt-2">
+                              <span className="font-medium">대상:</span> {fund.requirements}
+                            </p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                        <p className="text-yellow-800">
+                          현재 신청 가능한 정책자금이 없습니다. 신용점수 또는 자격 요건을 확인해주세요.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setShowReviewResultModal(false);
+                setReviewResultData(null);
+              }}
+              className="w-full mt-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+            >
+              닫기
+            </button>
+          </div>
+        </div>
       )}
 
 
