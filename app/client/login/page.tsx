@@ -124,9 +124,15 @@ export default function ClientLogin() {
               <Link href="/client/register" className="text-blue-600 hover:text-blue-700 font-medium">
                 회원가입
               </Link>
-              <Link href="/client/forgot-password" className="text-gray-600 hover:text-gray-700 cursor-pointer">
-                아이디/비밀번호 찾기
-              </Link>
+              <div className="flex gap-3">
+                <Link href="/client/find-email" className="text-gray-600 hover:text-gray-700">
+                  아이디 찾기
+                </Link>
+                <span className="text-gray-400">|</span>
+                <Link href="/client/forgot-password" className="text-gray-600 hover:text-gray-700">
+                  비밀번호 찾기
+                </Link>
+              </div>
             </div>
 
             <button

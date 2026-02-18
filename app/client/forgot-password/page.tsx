@@ -123,10 +123,16 @@ export default function ForgotPassword() {
                 </button>
               </form>
 
-              <div className="mt-6 text-center">
-                <Link href="/client/login" className="text-sm text-blue-600 hover:text-blue-700 underline">
-                  ← 로그인으로 돌아가기
-                </Link>
+              <div className="mt-6 text-center space-y-2">
+                <div className="flex justify-center gap-4 text-sm">
+                  <Link href="/client/find-email" className="text-blue-600 hover:text-blue-700">
+                    아이디 찾기
+                  </Link>
+                  <span className="text-gray-400">|</span>
+                  <Link href="/client/login" className="text-blue-600 hover:text-blue-700">
+                    로그인
+                  </Link>
+                </div>
               </div>
             </>
           )}
