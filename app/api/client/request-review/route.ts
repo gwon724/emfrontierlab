@@ -70,8 +70,7 @@ export async function POST(request: NextRequest) {
         SET soho_grade = ?,
             recommended_funds = ?,
             max_loan_limit = ?,
-            details = ?,
-            updated_at = datetime('now')
+            details = ?
         WHERE client_id = ?
       `).run(
         diagnosisResult.sohoGrade,
