@@ -623,67 +623,66 @@ export default function ClientDashboard() {
     <><div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <div className="bg-gray-800 text-white py-3 px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* 1행: 로고 + 로그아웃 */}
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              <h1 className="text-lg font-bold leading-tight">EMFRONTIER LAB</h1>
-              <p className="text-xs text-blue-200">{data.client?.name}님 환영합니다</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1.5 text-xs bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors"
-            >
-              로그아웃
-            </button>
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          {/* 로고 */}
+          <div className="flex-shrink-0">
+            <h1 className="text-base font-bold leading-tight">EMFRONTIER LAB</h1>
+            <p className="text-xs text-blue-200 whitespace-nowrap">{data.client?.name}님 환영합니다</p>
           </div>
-          {/* 2행: 기능 버튼들 */}
-          <div className="flex flex-wrap gap-1.5">
+          {/* 기능 버튼들 — 한 줄 고정 */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide min-w-0 flex-1">
             <button
               onClick={handleGenerateQR}
-              className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
             >
-              🔲 QR코드
+              🔲 내 QR 코드
             </button>
             <button
               onClick={handleGenerateReport}
-              className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
             >
-              📊 AI보고서
+              📊 AI 분석 보고서
             </button>
             <button
               onClick={() => setShowClientInfoReport(true)}
-              className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
             >
-              📄 고객정보
+              📄 고객정보 보고서
             </button>
             <button
               onClick={() => setShowFinancialAnalysis(true)}
-              className="px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-3 py-1.5 text-xs bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors font-medium whitespace-nowrap"
             >
-              📈 재무AI분석
+              📈 재무제표 AI 분석
             </button>
             <button
               onClick={handleOpenFundEval}
-              className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
             >
-              🏦 AI정책자금
+              🏦 AI 정책자금
             </button>
             <button
               onClick={handleOpenCompanyAnalysis}
-              className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium whitespace-nowrap"
             >
-              📊 AI기업분석
+              🚀 AI 사업계획서
             </button>
             {data.application && (
               <button
                 onClick={handleRequestReview}
-                className="px-3 py-1.5 text-xs bg-green-700 text-white rounded-lg hover:bg-green-600 transition-colors font-medium whitespace-nowrap"
+                className="flex-shrink-0 px-3 py-1.5 text-xs bg-green-700 text-white rounded-lg hover:bg-green-600 transition-colors font-medium whitespace-nowrap"
               >
-                🔄 AI재심사
+                🔄 AI 재심사
               </button>
             )}
           </div>
+          {/* 로그아웃 */}
+          <button
+            onClick={handleLogout}
+            className="flex-shrink-0 px-3 py-1.5 text-xs bg-gray-600 rounded-lg hover:bg-gray-500 transition-colors whitespace-nowrap"
+          >
+            로그아웃
+          </button>
         </div>
       </div>
 

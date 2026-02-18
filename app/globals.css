@@ -21,6 +21,15 @@ body {
   display: none !important;
 }
 
+/* 스크롤바 숨김 (헤더 버튼 가로 스크롤용) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Print styles for AI Report - A4 Optimized */
 @media print {
   @page {
