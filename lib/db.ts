@@ -27,8 +27,10 @@ export function initDatabase() {
       name TEXT NOT NULL,
       age INTEGER NOT NULL,
       gender TEXT NOT NULL,
+      phone TEXT,
       annual_revenue INTEGER NOT NULL,
       debt INTEGER NOT NULL,
+      total_debt INTEGER DEFAULT 0,
       debt_policy_fund INTEGER DEFAULT 0,
       debt_credit_loan INTEGER DEFAULT 0,
       debt_secondary_loan INTEGER DEFAULT 0,
@@ -36,13 +38,32 @@ export function initDatabase() {
       kcb_score INTEGER,
       nice_score INTEGER NOT NULL,
       has_technology INTEGER NOT NULL DEFAULT 0,
+      business_years INTEGER DEFAULT 0,
       soho_grade TEXT,
+      score INTEGER DEFAULT 0,
       agree_credit_check INTEGER NOT NULL DEFAULT 0,
       agree_privacy INTEGER NOT NULL DEFAULT 0,
       agree_confidentiality INTEGER NOT NULL DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // 기존 clients 테이블에 컬럼 추가 (마이그레이션)
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN phone TEXT`);
+  } catch (e) {}
+  
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN total_debt INTEGER DEFAULT 0`);
+  } catch (e) {}
+  
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN business_years INTEGER DEFAULT 0`);
+  } catch (e) {}
+  
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN score INTEGER DEFAULT 0`);
+  } catch (e) {}
 
   // 어드민 사용자 테이블
   database.exec(`
@@ -76,11 +97,42 @@ export function initDatabase() {
       client_id INTEGER NOT NULL,
       soho_grade TEXT NOT NULL,
       recommended_funds TEXT NOT NULL,
+      max_loan_limit INTEGER DEFAULT 0,
+      details TEXT,
       diagnosis_details TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (client_id) REFERENCES clients(id)
     )
   `);
+
+  // 기존 테이블에 컬럼 추가 (마이그레이션)
+  try {
+    // max_loan_limit 컬럼 추가
+    database.exec(`
+      ALTER TABLE ai_diagnosis ADD COLUMN max_loan_limit INTEGER DEFAULT 0
+    `);
+  } catch (e) {
+    // 컬럼이 이미 존재하면 무시
+  }
+
+  try {
+    // details 컬럼 추가
+    database.exec(`
+      ALTER TABLE ai_diagnosis ADD COLUMN details TEXT
+    `);
+  } catch (e) {
+    // 컬럼이 이미 존재하면 무시
+  }
+
+  try {
+    // updated_at 컬럼 추가
+    database.exec(`
+      ALTER TABLE ai_diagnosis ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    `);
+  } catch (e) {
+    // 컬럼이 이미 존재하면 무시
+  }
 
   // 기본 어드민 계정 생성
   const adminPassword = bcrypt.hashSync('admin123', 10);

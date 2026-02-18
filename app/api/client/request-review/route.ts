@@ -40,11 +40,14 @@ export async function POST(request: NextRequest) {
     // === AI 진단 즉시 실행 ===
     console.log('🤖 AI 재심사 시작:', client.name);
     
+    // total_debt가 없으면 debt 값 사용
+    const totalDebt = client.total_debt || client.debt || 0;
+    
     const diagnosisResult = performAIDiagnosis({
       niceScore: client.nice_score || 0,
       kcb_score: client.kcb_score || 0,
       annualRevenue: client.annual_revenue || 0,
-      debt: client.total_debt || 0,
+      debt: totalDebt,
       hasTechnology: client.has_technology === 1,
       businessYears: client.business_years || 0
     });
@@ -85,7 +88,7 @@ export async function POST(request: NextRequest) {
       `).run(
         payload.id,
         diagnosisResult.sohoGrade,
-        JSON.stringify(diagrosisResult.recommendedFunds),
+        JSON.stringify(diagnosisResult.recommendedFunds),
         diagnosisResult.maxLoanLimit,
         diagnosisResult.details
       );
