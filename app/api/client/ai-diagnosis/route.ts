@@ -27,25 +27,72 @@ export async function POST(request: NextRequest) {
     }
 
     // AI 진단 수행
+    const totalDebt = client.total_debt || client.debt || 0;
+    
     const clientData = {
-      niceScore: client.nice_score,
-      annualRevenue: client.annual_revenue,
-      debt: client.debt,
-      hasTechnology: client.has_technology === 1
+      niceScore: client.nice_score || 0,
+      kcb_score: client.kcb_score || 0,
+      annualRevenue: client.annual_revenue || 0,
+      debt: totalDebt,
+      hasTechnology: client.has_technology === 1,
+      businessYears: client.business_years || 0
     };
+
+    console.log('🤖 AI 진단 시작 (첫 진단):', client.name);
+    console.log('📊 진단 데이터:', clientData);
 
     const diagnosis = performAIDiagnosis(clientData);
 
-    // AI 진단 결과 저장 (중복 방지)
+    console.log('✅ AI 진단 완료:', {
+      grade: diagnosis.sohoGrade,
+      limit: diagnosis.maxLoanLimit,
+      funds: diagnosis.recommendedFunds.length
+    });
+
+    // AI 진단 결과 저장
+    const existingDiagnosis: any = db.prepare(
+      'SELECT id FROM ai_diagnosis WHERE client_id = ?'
+    ).get(client.id);
+
+    if (existingDiagnosis) {
+      // 기존 진단 결과 업데이트
+      db.prepare(`
+        UPDATE ai_diagnosis 
+        SET soho_grade = ?,
+            recommended_funds = ?,
+            max_loan_limit = ?,
+            details = ?
+        WHERE client_id = ?
+      `).run(
+        diagnosis.sohoGrade,
+        JSON.stringify(diagnosis.recommendedFunds),
+        diagnosis.maxLoanLimit,
+        diagnosis.details,
+        client.id
+      );
+    } else {
+      // 새 진단 결과 생성
+      db.prepare(`
+        INSERT INTO ai_diagnosis (client_id, soho_grade, recommended_funds, max_loan_limit, details)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(
+        client.id,
+        diagnosis.sohoGrade,
+        JSON.stringify(diagnosis.recommendedFunds),
+        diagnosis.maxLoanLimit,
+        diagnosis.details
+      );
+    }
+
+    // 고객 정보에 SOHO 등급과 점수 업데이트
     db.prepare(`
-      INSERT OR REPLACE INTO ai_diagnosis 
-      (client_id, soho_grade, recommended_funds, diagnosis_details)
-      VALUES (?, ?, ?, ?)
+      UPDATE clients 
+      SET soho_grade = ?, score = ?
+      WHERE id = ?
     `).run(
-      client.id,
       diagnosis.sohoGrade,
-      JSON.stringify(diagnosis.recommendedFunds),
-      diagnosis.details
+      diagnosis.maxLoanLimit,
+      client.id
     );
 
     return NextResponse.json({
