@@ -576,7 +576,7 @@ export default function ClientDashboard() {
             </button>
             <button
               onClick={() => setShowFinancialAnalysis(true)}
-              className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all font-medium flex items-center gap-2 shadow-md"
+              className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-700 transition-colors font-medium flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -1844,9 +1844,9 @@ export default function ClientDashboard() {
       {showFinancialAnalysis && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-lg z-10">
+            <div className="sticky top-0 bg-gray-800 text-white p-6 rounded-t-lg z-10">
               <h3 className="text-2xl font-bold">📈 재무제표 AI 분석</h3>
-              <p className="text-green-50 mt-1">최근 3개년 재무제표를 입력하시면 AI가 정밀 분석하여 최적의 대출 한도를 산출해드립니다.</p>
+              <p className="text-gray-100 mt-1">최근 3개년 재무제표를 입력하시면 AI가 정밀 분석하여 최적의 대출 한도를 산출해드립니다.</p>
             </div>
 
             <div className="p-6">
@@ -1859,8 +1859,8 @@ export default function ClientDashboard() {
                 <>
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {financialData.map((yearData, index) => (
-                      <div key={index} className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
-                        <h4 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                      <div key={index} className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -1873,7 +1873,7 @@ export default function ClientDashboard() {
                               type="number"
                               value={yearData.revenue || ''}
                               onChange={(e) => handleFinancialDataChange(index, 'revenue', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm"
                               placeholder="0"
                             />
                           </div>
@@ -1883,7 +1883,7 @@ export default function ClientDashboard() {
                               type="number"
                               value={yearData.operatingProfit || ''}
                               onChange={(e) => handleFinancialDataChange(index, 'operatingProfit', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm"
                               placeholder="0"
                             />
                           </div>
@@ -1893,7 +1893,7 @@ export default function ClientDashboard() {
                               type="number"
                               value={yearData.netProfit || ''}
                               onChange={(e) => handleFinancialDataChange(index, 'netProfit', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm"
                               placeholder="0"
                             />
                           </div>
@@ -1903,7 +1903,7 @@ export default function ClientDashboard() {
                               type="number"
                               value={yearData.totalAssets || ''}
                               onChange={(e) => handleFinancialDataChange(index, 'totalAssets', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm"
                               placeholder="0"
                             />
                           </div>
@@ -1913,7 +1913,7 @@ export default function ClientDashboard() {
                               type="number"
                               value={yearData.totalLiabilities || ''}
                               onChange={(e) => handleFinancialDataChange(index, 'totalLiabilities', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm"
                               placeholder="0"
                             />
                           </div>
@@ -1923,7 +1923,7 @@ export default function ClientDashboard() {
                               type="number"
                               value={yearData.equity || ''}
                               onChange={(e) => handleFinancialDataChange(index, 'equity', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-sm"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm"
                               placeholder="0"
                             />
                           </div>
@@ -1941,7 +1941,7 @@ export default function ClientDashboard() {
                   <div className="flex gap-3 mt-6">
                     <button
                       onClick={handleFinancialAnalysis}
-                      className="flex-1 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
+                      className="flex-1 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
                     >
                       🤖 AI 분석 시작
                     </button>
@@ -1970,14 +1970,14 @@ export default function ClientDashboard() {
       {showFinancialResult && financialResult && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 rounded-t-lg z-10">
+            <div className="sticky top-0 bg-gray-800 text-white p-6 rounded-t-lg z-10">
               <h3 className="text-2xl font-bold flex items-center gap-2">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 재무제표 AI 분석 결과
               </h3>
-              <p className="text-green-50 mt-1">3개년 재무제표 기반 정밀 분석 완료</p>
+              <p className="text-gray-100 mt-1">3개년 재무제표 기반 정밀 분석 완료</p>
             </div>
 
             <div className="p-6">
