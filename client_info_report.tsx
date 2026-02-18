@@ -51,7 +51,7 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
           transform: translate(-50%, -50%);
           opacity: 0.08;
           pointer-events: none;
-          z-index: 999;
+          z-index: 0;
           width: 400px;
           height: 400px;
         }
