@@ -15,3 +15,245 @@ body {
 * {
   box-sizing: border-box;
 }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Print styles for AI Report - A4 Optimized */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 15mm 15mm;
+  }
+
+  /* CRITICAL: Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the report modal and its contents */
+  #report-modal-overlay,
+  #report-modal-overlay *,
+  #report-modal-container,
+  #report-modal-container *,
+  #report-content,
+  #report-content *,
+  .print-page-header,
+  .print-page-header * {
+    visibility: visible !important;
+  }
+
+  /* Reset body and html */
+  body, html {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Make modal overlay take full page */
+  #report-modal-overlay {
+    position: static !important;
+    background: white !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 1 !important;
+  }
+
+  /* Make modal container take full page */
+  #report-modal-container {
+    position: static !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* Hide UI controls */
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .print\:block {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .print\:static {
+    position: static !important;
+  }
+
+  /* Ensure backgrounds and colors print */
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Page break control */
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Report container adjustments */
+  .report-page {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  /* Remove shadows and rounded corners for clean print */
+  .shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+    box-shadow: none !important;
+  }
+
+  .rounded, .rounded-lg, .rounded-xl, .rounded-2xl {
+    border-radius: 4px !important;
+  }
+
+  /* Font size adjustments for print */
+  .text-xs { font-size: 9pt !important; }
+  .text-sm { font-size: 10pt !important; }
+  .text-base { font-size: 11pt !important; }
+  .text-lg { font-size: 12pt !important; }
+  .text-xl { font-size: 14pt !important; }
+  .text-2xl { font-size: 16pt !important; }
+  .text-3xl { font-size: 20pt !important; }
+
+  /* Spacing adjustments */
+  .space-y-6 > * + * {
+    margin-top: 12pt !important;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 8pt !important;
+  }
+
+  .space-y-3 > * + * {
+    margin-top: 6pt !important;
+  }
+
+  .space-y-2 > * + * {
+    margin-top: 4pt !important;
+  }
+
+  /* Page header with QR code (repeats on each page) */
+  .print-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 10pt;
+    border-bottom: 2pt solid #000;
+    margin-bottom: 15pt;
+  }
+
+  /* QR code positioning */
+  .print-qr-code {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60pt;
+    height: 60pt;
+  }
+
+  /* Grid adjustments for print */
+  .grid {
+    display: grid !important;
+  }
+
+  /* Ensure proper column layout */
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* Max height removal for print */
+  .max-h-\[90vh\], .overflow-y-auto {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Remove sticky positioning */
+  .sticky {
+    position: static !important;
+  }
+
+  /* Page number footer */
+  .print-page-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    padding-top: 5pt;
+    border-top: 1pt solid #ddd;
+  }
+
+  /* Prevent orphan/widow lines */
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Table adjustments */
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  /* Link styling for print */
+  a[href]:after {
+    content: none !important;
+  }
+}
