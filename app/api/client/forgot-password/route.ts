@@ -1,16 +1,6 @@
 import { NextResponse } from 'next/server';
-import Database from 'better-sqlite3';
-import path from 'path';
-
-const dbPath = path.join(process.cwd(), '..', 'shared-emfrontier.db');
-
-// 인증 코드 생성 (6자리 숫자)
-function generateVerificationCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// 인증 코드 저장 (메모리 저장소 - 실제로는 Redis나 DB 사용 권장)
-const verificationCodes = new Map<string, { code: string; expires: number }>();
+import { initDatabase, getDatabase } from '@/lib/db';
+import { generateVerificationCode, storeCode } from '@/lib/verification';
 
 export async function POST(request: Request) {
   try {
@@ -24,9 +14,9 @@ export async function POST(request: Request) {
     }
 
     // 데이터베이스에서 사용자 확인
-    const db = new Database(dbPath);
+    initDatabase();
+    const db = getDatabase();
     const client = db.prepare('SELECT * FROM clients WHERE email = ?').get(email);
-    db.close();
 
     if (!client) {
       return NextResponse.json(
@@ -35,15 +25,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // 인증 코드 생성
+    // 인증 코드 생성 및 저장 (10분 유효)
     const code = generateVerificationCode();
-    
-    // 인증 코드 저장 (10분 유효)
-    const expires = Date.now() + 10 * 60 * 1000;
-    verificationCodes.set(email, { code, expires });
+    storeCode(email, code);
 
     // 실제로는 이메일 발송 서비스를 사용해야 합니다
-    // 여기서는 콘솔에 출력 (개발 환경)
     console.log('='.repeat(50));
     console.log('📧 비밀번호 재설정 인증 코드');
     console.log('='.repeat(50));
@@ -52,10 +38,9 @@ export async function POST(request: Request) {
     console.log(`유효 시간: 10분`);
     console.log('='.repeat(50));
 
-    // 개발 환경에서는 응답에 코드를 포함 (실제 환경에서는 제거해야 함)
     return NextResponse.json({
       message: '인증 코드가 이메일로 발송되었습니다.',
-      // 개발용: 실제로는 이 부분 제거
+      // 개발용: 실제 배포 시 제거
       devCode: process.env.NODE_ENV === 'development' ? code : undefined,
     });
 
@@ -66,31 +51,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}
-
-// 인증 코드 검증 함수 (다른 API에서 사용)
-export function verifyCode(email: string, code: string): boolean {
-  const stored = verificationCodes.get(email);
-  
-  if (!stored) {
-    return false;
-  }
-
-  // 만료 확인
-  if (Date.now() > stored.expires) {
-    verificationCodes.delete(email);
-    return false;
-  }
-
-  // 코드 일치 확인
-  if (stored.code !== code) {
-    return false;
-  }
-
-  return true;
-}
-
-// 인증 코드 삭제 함수
-export function deleteCode(email: string): void {
-  verificationCodes.delete(email);
 }

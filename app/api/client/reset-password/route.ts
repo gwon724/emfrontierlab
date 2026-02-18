@@ -1,31 +1,7 @@
 import { NextResponse } from 'next/server';
-import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
-import path from 'path';
-
-const dbPath = path.join(process.cwd(), '..', 'shared-emfrontier.db');
-
-// 임시 인증 코드 저장소 (forgot-password API와 공유)
-const verificationCodes = new Map<string, { code: string; expires: number }>();
-
-function verifyCode(email: string, code: string): boolean {
-  const stored = verificationCodes.get(email);
-  
-  if (!stored) {
-    return false;
-  }
-
-  if (Date.now() > stored.expires) {
-    verificationCodes.delete(email);
-    return false;
-  }
-
-  if (stored.code !== code) {
-    return false;
-  }
-
-  return true;
-}
+import { initDatabase, getDatabase } from '@/lib/db';
+import { verifyCode, deleteCode } from '@/lib/verification';
 
 function validatePassword(password: string): string | null {
   if (password.length < 8 || password.length > 20) {
@@ -72,31 +48,23 @@ export async function POST(request: Request) {
     }
 
     // 데이터베이스에서 사용자 확인
-    const db = new Database(dbPath);
-    
+    initDatabase();
+    const db = getDatabase();
     const client = db.prepare('SELECT * FROM clients WHERE email = ?').get(email);
-    
+
     if (!client) {
-      db.close();
       return NextResponse.json(
         { error: '사용자를 찾을 수 없습니다.' },
         { status: 404 }
       );
     }
 
-    // 비밀번호 해싱
+    // 비밀번호 해싱 및 업데이트
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // 비밀번호 업데이트
-    db.prepare('UPDATE clients SET password = ? WHERE email = ?').run(
-      hashedPassword,
-      email
-    );
-
-    db.close();
+    db.prepare('UPDATE clients SET password = ? WHERE email = ?').run(hashedPassword, email);
 
     // 사용된 인증 코드 삭제
-    verificationCodes.delete(email);
+    deleteCode(email);
 
     console.log(`✅ 비밀번호 재설정 완료: ${email}`);
 

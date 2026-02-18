@@ -405,9 +405,3 @@ export default function ClientInfoReport({ client, onClose }: ClientInfoReportPr
     </>
   );
 }
-       </div>
-      </div>
-    </div>
-    </>
-  );
-}

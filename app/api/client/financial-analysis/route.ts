@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         JSON.stringify(analysis.recommendedFunds),
         analysis.financialHealthScore,
         analysis.growthRate,
-        analysis.profitability_ratio,
+        analysis.profitabilityRatio,
         analysis.stabilityRatio,
         analysis.details
       );
