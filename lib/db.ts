@@ -65,6 +65,43 @@ export function initDatabase() {
     database.exec(`ALTER TABLE clients ADD COLUMN score INTEGER DEFAULT 0`);
   } catch (e) {}
 
+  // 재무제표 분석 결과 테이블
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS financial_statements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL,
+      year INTEGER NOT NULL,
+      revenue REAL DEFAULT 0,
+      operating_profit REAL DEFAULT 0,
+      net_profit REAL DEFAULT 0,
+      total_assets REAL DEFAULT 0,
+      total_liabilities REAL DEFAULT 0,
+      equity REAL DEFAULT 0,
+      file_path TEXT,
+      uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    )
+  `);
+
+  // 재무제표 AI 분석 결과 테이블
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS financial_analysis (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL,
+      analysis_type TEXT DEFAULT 'financial_statement',
+      soho_grade TEXT,
+      max_loan_limit INTEGER DEFAULT 0,
+      recommended_funds TEXT,
+      financial_health_score INTEGER DEFAULT 0,
+      growth_rate REAL DEFAULT 0,
+      profitability_ratio REAL DEFAULT 0,
+      stability_ratio REAL DEFAULT 0,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    )
+  `);
+
   // 어드민 사용자 테이블
   database.exec(`
     CREATE TABLE IF NOT EXISTS admins (
