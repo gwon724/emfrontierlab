@@ -471,7 +471,7 @@ export default function ClientDashboard() {
                 onClick={handleRequestReview}
                 className="px-4 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-700 transition-all shadow-md"
               >
-                🔄 재심사 요청
+                🔄 AI 재심사
               </button>
             )}
             <button
@@ -601,7 +601,7 @@ export default function ClientDashboard() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                재심사 요청하기
+                AI 재심사 요청하기
               </button>
               <p className="text-xs text-gray-500 text-center mt-2">
                 {data.application.status === '반려' || data.application.status === '보완' 
