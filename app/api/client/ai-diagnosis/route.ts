@@ -35,7 +35,11 @@ export async function POST(request: NextRequest) {
       annualRevenue: client.annual_revenue || 0,
       debt: totalDebt,
       hasTechnology: client.has_technology === 1,
-      businessYears: client.business_years || 0
+      businessYears: client.business_years || 0,
+      age: client.age || 0,
+      birth_date: client.birth_date || undefined,
+      industry: client.industry || undefined,
+      is_manufacturing: client.is_manufacturing || 0,
     };
 
     console.log('🤖 AI 진단 시작 (첫 진단):', client.name);

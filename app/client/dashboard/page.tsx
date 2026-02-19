@@ -53,6 +53,8 @@ export default function ClientDashboard() {
   const [fundEvalData, setFundEvalData] = useState<any>(null);
   const [loadingFundEval, setLoadingFundEval] = useState(false);
   const [fundEvalFilter, setFundEvalFilter] = useState<'all' | 'eligible' | 'ineligible'>('all');
+  const [fundEvalSelected, setFundEvalSelected] = useState<string[]>([]);
+  const [submittingFundEval, setSubmittingFundEval] = useState(false);
 
   // AI 기업집중분석 관련 state
   const [showCompanyAnalysis, setShowCompanyAnalysis] = useState(false);
@@ -445,6 +447,7 @@ export default function ClientDashboard() {
     setFundEvalData(null);
     setLoadingFundEval(true);
     setFundEvalFilter('all');
+    setFundEvalSelected([]);
     const token = localStorage.getItem('clientToken');
     try {
       const res = await fetch('/api/client/evaluate-funds', {
@@ -456,6 +459,41 @@ export default function ClientDashboard() {
       else alert(d.error || '분석 실패');
     } catch { alert('오류가 발생했습니다.'); }
     finally { setLoadingFundEval(false); }
+  };
+
+  // AI 정책자금 평가 모달에서 자금 선택/해제
+  const toggleFundEvalSelected = (fundName: string) => {
+    setFundEvalSelected(prev =>
+      prev.includes(fundName) ? prev.filter(f => f !== fundName) : [...prev, fundName]
+    );
+  };
+
+  // AI 정책자금 평가 모달에서 신청 제출
+  const handleSubmitFromFundEval = async () => {
+    if (fundEvalSelected.length === 0) {
+      alert('최소 1개 이상의 정책자금을 선택해주세요.');
+      return;
+    }
+    if (!confirm(`선택한 ${fundEvalSelected.length}개 정책자금을 신청하시겠습니까?`)) return;
+    setSubmittingFundEval(true);
+    const token = localStorage.getItem('clientToken');
+    try {
+      const res = await fetch('/api/client/submit-application', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selected_funds: fundEvalSelected })
+      });
+      const d = await res.json();
+      if (res.ok) {
+        alert(`✅ 정책자금 신청이 완료되었습니다!\n선택한 자금: ${fundEvalSelected.join(', ')}`);
+        setShowFundEval(false);
+        setFundEvalSelected([]);
+        fetchData();
+      } else {
+        alert(d.error || '신청 제출에 실패했습니다.');
+      }
+    } catch { alert('신청 제출 중 오류가 발생했습니다.'); }
+    finally { setSubmittingFundEval(false); }
   };
 
   // AI 기업집중분석 실행
@@ -1067,6 +1105,34 @@ export default function ClientDashboard() {
               <p className="text-lg font-semibold text-gray-800">
                 {data.client?.business_years || 0}년
               </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">나이 / 업종</label>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <p className="text-lg font-semibold text-gray-800">
+                  {data.client?.birth_date ? (() => {
+                    const b = new Date(data.client.birth_date);
+                    const now = new Date();
+                    let a = now.getFullYear() - b.getFullYear();
+                    const m = now.getMonth() - b.getMonth();
+                    if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+                    return `만 ${a}세`;
+                  })() : data.client?.age ? `${data.client.age}세` : '-'}
+                </p>
+                {data.client?.age && data.client.age <= 39 && (
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold">청년</span>
+                )}
+                {(data.client?.is_manufacturer === 1 || data.client?.is_manufacturing === 1) && (
+                  <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-semibold">🏭 제조업</span>
+                )}
+              </div>
+              {data.client?.age && data.client.age <= 39 && (
+                <p className="text-xs text-blue-600 mt-1 font-medium">
+                  {(data.client?.is_manufacturer === 1 || data.client?.is_manufacturing === 1) && data.client.age < 39
+                    ? '🎉 제조업 청년 → 중진공 최대 2억, 금리 2.5%'
+                    : '🎉 청년 창업자 → 중진공 최대 1억, 금리 2.5%'}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">연매출</label>
@@ -2390,7 +2456,7 @@ export default function ClientDashboard() {
               ) : fundEvalData ? (
                 <>
                   {/* 요약 카드 */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="grid grid-cols-3 gap-4 mb-5">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
                       <p className="text-xs text-blue-600 font-semibold mb-1">SOHO 등급</p>
                       <p className="text-3xl font-black text-blue-700">{fundEvalData.sohoGrade}</p>
@@ -2408,13 +2474,33 @@ export default function ClientDashboard() {
                     </div>
                   </div>
 
+                  {/* 신청 안내 배너 */}
+                  {!data.application && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-2">
+                      <span className="text-blue-500 text-lg mt-0.5">💡</span>
+                      <div>
+                        <p className="text-xs font-bold text-blue-800">조건 충족 자금을 선택하여 바로 신청할 수 있습니다!</p>
+                        <p className="text-xs text-blue-600 mt-0.5">✅ 충족된 자금 카드를 클릭하거나 체크박스를 선택 후 하단에서 신청하세요.</p>
+                      </div>
+                    </div>
+                  )}
+                  {data.application && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                      <span className="text-amber-500 text-lg mt-0.5">⚠️</span>
+                      <div>
+                        <p className="text-xs font-bold text-amber-800">이미 신청 내역이 있습니다.</p>
+                        <p className="text-xs text-amber-600 mt-0.5">재신청 시 기존 신청 내역이 업데이트됩니다. AI 재심사를 이용해주세요.</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* 필터 탭 */}
                   <div className="flex gap-2 mb-4">
                     {(['all', 'eligible', 'ineligible'] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => setFundEvalFilter(f)}
-                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                           fundEvalFilter === f ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
@@ -2423,9 +2509,23 @@ export default function ClientDashboard() {
                          `❌ 미충족 (${fundEvalData.funds?.filter((x: any) => !x.eligible).length})`}
                       </button>
                     ))}
+                    {/* 전체 선택/해제 (충족 자금만) */}
+                    {!data.application && fundEvalData.funds?.some((f: any) => f.eligible) && (
+                      <button
+                        onClick={() => {
+                          const eligibleNames = fundEvalData.funds.filter((f: any) => f.eligible).map((f: any) => f.name);
+                          const allSelected = eligibleNames.every((n: string) => fundEvalSelected.includes(n));
+                          setFundEvalSelected(allSelected ? [] : eligibleNames);
+                        }}
+                        className="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-100 text-green-700 hover:bg-green-200 transition-all"
+                      >
+                        {fundEvalData.funds.filter((f: any) => f.eligible).every((f: any) => fundEvalSelected.includes(f.name))
+                          ? '선택 전체 해제' : '✅ 충족 전체 선택'}
+                      </button>
+                    )}
                   </div>
 
-                  {/* 자금별 카드 - 노션 스타일 */}
+                  {/* 자금별 카드 */}
                   <div className="space-y-3">
                     {fundEvalData.funds
                       ?.filter((fund: any) =>
@@ -2433,74 +2533,128 @@ export default function ClientDashboard() {
                         fundEvalFilter === 'eligible' ? fund.eligible :
                         !fund.eligible
                       )
-                      .map((fund: any, idx: number) => (
-                        <div key={idx} className={`border-2 rounded-xl overflow-hidden ${fund.eligible ? 'border-green-300 shadow-sm' : 'border-gray-200'}`}>
-                          {/* 자금 헤더 */}
-                          <div className={`flex items-center justify-between px-4 py-3 ${fund.eligible ? 'bg-green-50' : 'bg-gray-50'}`}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">
-                                {fund.category?.includes('중진공') ? '🏢' :
-                                 fund.category?.includes('소진공') ? '🏪' :
-                                 fund.category?.includes('신용보증') ? '🛡️' :
-                                 fund.category?.includes('기술보증') ? '🔬' : '💼'}
-                              </span>
-                              <div>
-                                <p className="font-bold text-gray-900 text-sm">{fund.name}</p>
-                                <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded border border-gray-200">{fund.category}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3 text-right">
-                              <div>
-                                <p className="text-xs text-gray-500">최대 한도</p>
-                                <p className={`font-bold text-sm ${fund.eligible ? 'text-green-700' : 'text-gray-500'}`}>
-                                  {fund.max_amount >= 100000000
-                                    ? (fund.max_amount / 100000000).toFixed(1) + '억'
-                                    : (fund.max_amount / 10000000).toFixed(0) + '천만'}원
-                                </p>
-                              </div>
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                                fund.eligible ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
-                              }`}>
-                                {fund.passCount}/{fund.totalCount}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 조건 체크 목록 - 노션 테이블 스타일 */}
-                          <div className="px-4 py-3 bg-white">
-                            <div className="divide-y divide-gray-100">
-                              {fund.conditions?.map((cond: any, ci: number) => (
-                                <div key={ci} className="flex items-center justify-between py-2.5">
-                                  <div className="flex items-center gap-2 flex-1">
-                                    <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                                      cond.passed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
-                                    }`}>
-                                      {cond.passed ? '✓' : '✗'}
-                                    </span>
-                                    <span className="text-sm text-gray-700 font-medium">{cond.label}</span>
+                      .map((fund: any, idx: number) => {
+                        const isSelected = fundEvalSelected.includes(fund.name);
+                        const canSelect = fund.eligible && !data.application;
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => canSelect && toggleFundEvalSelected(fund.name)}
+                            className={`border-2 rounded-xl overflow-hidden transition-all ${
+                              canSelect ? 'cursor-pointer' : ''
+                            } ${
+                              isSelected
+                                ? 'border-blue-500 shadow-md ring-2 ring-blue-200'
+                                : fund.eligible
+                                ? 'border-green-300 shadow-sm hover:border-green-400'
+                                : 'border-gray-200'
+                            }`}
+                          >
+                            {/* 자금 헤더 */}
+                            <div className={`flex items-center justify-between px-4 py-3 ${
+                              isSelected ? 'bg-blue-50' : fund.eligible ? 'bg-green-50' : 'bg-gray-50'
+                            }`}>
+                              <div className="flex items-center gap-2">
+                                {/* 체크박스 (신청 전 + 충족 자금만) */}
+                                {canSelect && (
+                                  <div
+                                    onClick={(e) => { e.stopPropagation(); toggleFundEvalSelected(fund.name); }}
+                                    className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                                      isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-400 bg-white'
+                                    }`}
+                                  >
+                                    {isSelected && (
+                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    )}
                                   </div>
-                                  <div className="flex items-center gap-6 text-right">
-                                    <div>
-                                      <p className="text-xs text-gray-400">기준</p>
-                                      <p className="text-xs font-semibold text-gray-600">{cond.required}</p>
-                                    </div>
-                                    <div className="w-20">
-                                      <p className="text-xs text-gray-400">내 실제값</p>
-                                      <p className={`text-xs font-bold ${cond.passed ? 'text-green-600' : 'text-red-500'}`}>{cond.actual}</p>
-                                    </div>
-                                  </div>
+                                )}
+                                <span className="text-lg">
+                                  {fund.category?.includes('중진공') ? '🏢' :
+                                   fund.category?.includes('소진공') ? '🏪' :
+                                   fund.category?.includes('신용보증') ? '🛡️' :
+                                   fund.category?.includes('기술보증') ? '🔬' : '💼'}
+                                </span>
+                                <div>
+                                  <p className="font-bold text-gray-900 text-sm">{fund.name}</p>
+                                  <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded border border-gray-200">{fund.category}</span>
                                 </div>
-                              ))}
-                            </div>
-                            {fund.eligible && (
-                              <div className="mt-2 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
-                                <p className="text-xs text-green-700 font-semibold">✅ 모든 조건 충족 — 신청 가능</p>
                               </div>
-                            )}
+                              <div className="flex items-center gap-3 text-right">
+                                <div>
+                                  <p className="text-xs text-gray-500">최대 한도</p>
+                                  <p className={`font-bold text-sm ${fund.eligible ? 'text-green-700' : 'text-gray-500'}`}>
+                                    {fund.max_amount >= 100000000
+                                      ? (fund.max_amount / 100000000).toFixed(1) + '억'
+                                      : (fund.max_amount / 10000000).toFixed(0) + '천만'}원
+                                  </p>
+                                </div>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                  isSelected ? 'bg-blue-500 text-white' :
+                                  fund.eligible ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                                }`}>
+                                  {fund.passCount}/{fund.totalCount}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 조건 체크 목록 */}
+                            <div className="px-4 py-3 bg-white">
+                              <div className="divide-y divide-gray-100">
+                                {fund.conditions?.map((cond: any, ci: number) => (
+                                  <div key={ci} className="flex items-center justify-between py-2.5">
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                                        cond.passed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
+                                      }`}>
+                                        {cond.passed ? '✓' : '✗'}
+                                      </span>
+                                      <span className="text-sm text-gray-700 font-medium">{cond.label}</span>
+                                    </div>
+                                    <div className="flex items-center gap-6 text-right">
+                                      <div>
+                                        <p className="text-xs text-gray-400">기준</p>
+                                        <p className="text-xs font-semibold text-gray-600">{cond.required}</p>
+                                      </div>
+                                      <div className="w-20">
+                                        <p className="text-xs text-gray-400">내 실제값</p>
+                                        <p className={`text-xs font-bold ${cond.passed ? 'text-green-600' : 'text-red-500'}`}>{cond.actual}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              {fund.eligible && (
+                                <div className={`mt-2 px-3 py-2 rounded-lg border ${
+                                  isSelected ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'
+                                }`}>
+                                  <p className={`text-xs font-semibold ${isSelected ? 'text-blue-700' : 'text-green-700'}`}>
+                                    {isSelected ? '✅ 선택됨 — 하단에서 신청 가능' : '✅ 모든 조건 충족 — 신청 가능'}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
+
+                  {/* 선택된 자금 요약 (신청 전에만) */}
+                  {!data.application && fundEvalSelected.length > 0 && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                      <p className="text-sm font-bold text-blue-800 mb-1">
+                        📋 선택된 자금: {fundEvalSelected.length}개
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {fundEvalSelected.map(name => (
+                          <span key={name} className="px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full font-medium">
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <p className="text-center text-gray-400 py-8">데이터를 불러오지 못했습니다.</p>
@@ -2516,8 +2670,20 @@ export default function ClientDashboard() {
                 >
                   {loadingFundEval ? '⏳ 분석 중...' : '🔄 재분석'}
                 </button>
+                {/* 신청 버튼 (신청 전 + 선택된 자금 있을 때) */}
+                {!data.application && fundEvalSelected.length > 0 && (
+                  <button
+                    onClick={handleSubmitFromFundEval}
+                    disabled={submittingFundEval}
+                    className={`flex-1 py-3 rounded-xl font-bold transition-colors ${
+                      submittingFundEval ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {submittingFundEval ? '신청 중...' : `💰 ${fundEvalSelected.length}개 자금 신청`}
+                  </button>
+                )}
                 <button
-                  onClick={() => setShowFundEval(false)}
+                  onClick={() => { setShowFundEval(false); setFundEvalSelected([]); }}
                   className="flex-1 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
                 >
                   닫기

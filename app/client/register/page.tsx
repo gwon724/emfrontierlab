@@ -15,8 +15,11 @@ export default function ClientRegister() {
     confirmPassword: '',
     name: '',
     phone: '',
+    birth_date: '',
     age: '',
     gender: '남성',
+    industry: '',
+    is_manufacturing: false,
     business_years: '',
     annual_revenue: '',
     debt: '',
@@ -31,6 +34,18 @@ export default function ClientRegister() {
     agree_privacy: false,
     agree_confidentiality: false,
   });
+
+  // 생년월일 → 만 나이 자동 계산
+  useEffect(() => {
+    if (formData.birth_date) {
+      const today = new Date();
+      const birth = new Date(formData.birth_date);
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      setFormData(prev => ({ ...prev, age: String(age) }));
+    }
+  }, [formData.birth_date]);
 
   // 부채 자동 합산
   useEffect(() => {
@@ -225,19 +240,41 @@ export default function ClientRegister() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      나이 <span className="text-red-500">*</span>
+                      생년월일 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="birth_date"
+                      value={formData.birth_date}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      만 나이가 자동 계산됩니다
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      만 나이 (자동 계산)
                     </label>
                     <input
                       type="number"
                       name="age"
                       value={formData.age}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                      placeholder="35"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-blue-50 text-blue-800 font-semibold outline-none"
+                      placeholder="생년월일 입력 시 자동 계산"
                       min="18"
                       max="100"
-                      required
+                      readOnly={!!formData.birth_date}
                     />
+                    {formData.age && parseInt(formData.age) < 39 && (
+                      <p className="text-xs text-blue-600 mt-1 font-medium">
+                        🎉 만 39세 미만 — 중진공 청년창업자금 대상입니다!
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -275,6 +312,65 @@ export default function ClientRegister() {
                       사업을 시작한 후 경과한 연수를 입력하세요
                     </p>
                   </div>
+                </div>
+
+                {/* 업종 정보 */}
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    업종 정보 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-start space-x-3 p-4 bg-orange-50 border border-orange-200 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
+                    onClick={() => setFormData(prev => ({ ...prev, is_manufacturing: !prev.is_manufacturing }))}>
+                    <input
+                      type="checkbox"
+                      name="is_manufacturing"
+                      checked={formData.is_manufacturing}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500 mt-0.5 flex-shrink-0"
+                      onClick={e => e.stopPropagation()}
+                    />
+                    <div>
+                      <span className="text-sm font-medium text-gray-800">
+                        🏭 제조업 해당
+                      </span>
+                      <p className="text-xs text-gray-600 mt-1">
+                        제조업·제조 관련 서비스업에 해당하는 경우 체크해주세요.
+                        만 39세 미만 + 제조업 조건 충족 시 <strong className="text-orange-700">최대 2억 원, 금리 2.5%</strong> 혜택이 적용됩니다.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 업종명 직접 입력 */}
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      업종명
+                    </label>
+                    <input
+                      type="text"
+                      name="industry"
+                      value={formData.industry}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                      placeholder="예: 제조업, IT서비스, 음식점, 도·소매업 등"
+                    />
+                  </div>
+
+                  {/* 청년/제조업 혜택 안내 배너 */}
+                  {formData.age && parseInt(formData.age) < 39 && formData.is_manufacturing && (
+                    <div className="mt-3 p-3 bg-green-50 border border-green-300 rounded-lg">
+                      <p className="text-sm font-semibold text-green-800">
+                        ✅ 만 39세 미만 + 제조업 조건 충족 — 중진공 청년창업자금 <strong>최대 2억 원, 금리 2.5%</strong> 적용됩니다!
+                      </p>
+                    </div>
+                  )}
+                  {formData.age && parseInt(formData.age) < 39 && !formData.is_manufacturing && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-300 rounded-lg">
+                      <p className="text-sm font-semibold text-blue-800">
+                        ✅ 만 39세 미만 — 중진공 청년창업자금 <strong>최대 1억 원, 금리 2.5%</strong> 적용됩니다.
+                        제조업 체크 시 <strong>최대 2억 원</strong>까지 확대됩니다!
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

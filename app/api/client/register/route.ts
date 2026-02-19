@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
       name,
       phone,
       age,
+      birth_date,
       gender,
+      industry,
+      is_manufacturing,
+      is_manufacturer,
       business_years,
       annual_revenue,
       debt,
@@ -31,6 +35,10 @@ export async function POST(request: NextRequest) {
       agree_privacy,
       agree_confidentiality
     } = body;
+
+    // is_manufacturer 또는 is_manufacturing 중 하나를 사용
+    const isMfgFlag = is_manufacturer === true || is_manufacturer === 'true'
+      || is_manufacturing === true || is_manufacturing === 'true';
 
     // 전화번호 유효성 검사
     if (!phone) {
@@ -79,24 +87,31 @@ export async function POST(request: NextRequest) {
     const diagnosis = performAIDiagnosis({
       name,
       age: parseInt(age),
+      birth_date: birth_date || undefined,
       gender,
       annual_revenue: parseInt(annual_revenue),
       debt: totalDebt,
       kcb_score: kcb_score ? parseInt(kcb_score) : undefined,
       nice_score: parseInt(nice_score),
-      has_technology: has_technology === 'true' || has_technology === true
+      has_technology: has_technology === 'true' || has_technology === true,
+      industry: industry || undefined,
+      is_manufacturing: isMfgFlag ? 1 : 0,
+      is_manufacturer: isMfgFlag,
     });
 
     // 클라이언트 등록
     const result = db.prepare(`
       INSERT INTO clients (
-        email, password, name, phone, age, gender, business_years, annual_revenue, debt, total_debt,
+        email, password, name, phone, age, birth_date, gender, industry, is_manufacturing, is_manufacturer,
+        business_years, annual_revenue, debt, total_debt,
         debt_policy_fund, debt_credit_loan, debt_secondary_loan, debt_card_loan,
         kcb_score, nice_score, has_technology, soho_grade,
         agree_credit_check, agree_privacy, agree_confidentiality
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      email, hashedPassword, name, phone, age, gender, business_years || 0, annual_revenue, totalDebt, totalDebt,
+      email, hashedPassword, name, phone, age, birth_date || null, gender,
+      industry || null, isMfgFlag ? 1 : 0, isMfgFlag ? 1 : 0,
+      business_years || 0, annual_revenue, totalDebt, totalDebt,
       debt_policy_fund || 0, debt_credit_loan || 0, debt_secondary_loan || 0, debt_card_loan || 0,
       kcb_score || null, nice_score, has_technology ? 1 : 0, diagnosis.sohoGrade,
       1, 1, 1
