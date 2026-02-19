@@ -28,6 +28,9 @@ export function initDatabase() {
       age INTEGER NOT NULL,
       gender TEXT NOT NULL,
       phone TEXT,
+      birth_date TEXT,
+      industry TEXT,
+      is_manufacturing INTEGER NOT NULL DEFAULT 0,
       annual_revenue INTEGER NOT NULL,
       debt INTEGER NOT NULL,
       total_debt INTEGER DEFAULT 0,
@@ -38,6 +41,8 @@ export function initDatabase() {
       kcb_score INTEGER,
       nice_score INTEGER NOT NULL,
       has_technology INTEGER NOT NULL DEFAULT 0,
+      is_manufacturer INTEGER NOT NULL DEFAULT 0,
+      birth_date TEXT,
       business_years INTEGER DEFAULT 0,
       soho_grade TEXT,
       score INTEGER DEFAULT 0,
@@ -62,7 +67,35 @@ export function initDatabase() {
   } catch (e) {}
   
   try {
+    database.exec(`ALTER TABLE clients ADD COLUMN is_manufacturer INTEGER DEFAULT 0`);
+  } catch (e) {}
+
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN is_manufacturing INTEGER DEFAULT 0`);
+  } catch (e) {}
+
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN birth_date TEXT`);
+  } catch (e) {}
+
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN industry TEXT`);
+  } catch (e) {}
+
+  try {
     database.exec(`ALTER TABLE clients ADD COLUMN score INTEGER DEFAULT 0`);
+  } catch (e) {}
+
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN birth_date TEXT`);
+  } catch (e) {}
+
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN industry TEXT`);
+  } catch (e) {}
+
+  try {
+    database.exec(`ALTER TABLE clients ADD COLUMN is_manufacturing INTEGER DEFAULT 0`);
   } catch (e) {}
 
   // 재무제표 분석 결과 테이블

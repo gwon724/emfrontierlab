@@ -1107,6 +1107,34 @@ export default function ClientDashboard() {
               </p>
             </div>
             <div>
+              <label className="text-sm font-medium text-gray-600">나이 / 업종</label>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <p className="text-lg font-semibold text-gray-800">
+                  {data.client?.birth_date ? (() => {
+                    const b = new Date(data.client.birth_date);
+                    const now = new Date();
+                    let a = now.getFullYear() - b.getFullYear();
+                    const m = now.getMonth() - b.getMonth();
+                    if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+                    return `만 ${a}세`;
+                  })() : data.client?.age ? `${data.client.age}세` : '-'}
+                </p>
+                {data.client?.age && data.client.age <= 39 && (
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-semibold">청년</span>
+                )}
+                {(data.client?.is_manufacturer === 1 || data.client?.is_manufacturing === 1) && (
+                  <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-semibold">🏭 제조업</span>
+                )}
+              </div>
+              {data.client?.age && data.client.age <= 39 && (
+                <p className="text-xs text-blue-600 mt-1 font-medium">
+                  {(data.client?.is_manufacturer === 1 || data.client?.is_manufacturing === 1) && data.client.age < 39
+                    ? '🎉 제조업 청년 → 중진공 최대 2억, 금리 2.5%'
+                    : '🎉 청년 창업자 → 중진공 최대 1억, 금리 2.5%'}
+                </p>
+              )}
+            </div>
+            <div>
               <label className="text-sm font-medium text-gray-600">연매출</label>
               <p className="text-lg font-semibold text-green-600">
                 {data.client?.annual_revenue?.toLocaleString()}원
