@@ -704,7 +704,8 @@ export function recommendPolicyFunds(client: ClientData, sohoGrade: string): Pol
 export function performAIDiagnosis(client: ClientData): DiagnosisResult {
   const sohoGrade = calculateSOHOGrade(client);
   const allFunds = evaluatePolicyFunds(client);
-  const recommendedFunds = allFunds;
+  // eligible(조건 충족)한 자금만 추천 — 조건 미충족 자금은 제외
+  const recommendedFunds = allFunds.filter(f => f.eligible);
   const maxLoanLimit = calculateMaxLoanLimit(client, sohoGrade);
 
   const niceScore = client.niceScore || client.nice_score || 0;
